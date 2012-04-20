@@ -1,0 +1,7 @@
+; $Id$
+name = Userpoints Reset
+description = Resets all userpoints on the site.
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x
+

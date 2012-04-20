@@ -1,0 +1,13 @@
+name = Tagging
+description = This widget is replacing the default Drupal-Tagging-Interface with a more visual driven one, to make tagging even easier. (by <a href="http://kontextwork.de"KontextWork</a>)
+package = "Drupal Wiki"
+core = 6.x
+dependencies[] = taxonomy
+project = "tagging"
+
+; Information added by drupal.org packaging script on 2011-12-01
+version = "6.x-3.2"
+core = "6.x"
+project = "tagging"
+datestamp = "1322729152"
+

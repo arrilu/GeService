@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * @file
+ * merci inventory install / uninstall
+ */
+
+/**
+ * Implements hook_install().
+ */
+function merci_inventory_install() {
+  //module isn't enabled on install, calling this processes node_info so node types are created before processing create_content_types()
+  //this keeps the content type tied to the module, but simplifies the process of adding fields
+  drupal_load('module', 'merci_inventory');
+
+  drupal_set_message(t('MERCI Inventory module successfully installed. merci_inventory and merci_inventory_master content types created.  Do not add nodes to merci_inventory_master content type.  Only use it to push CCK fields out to other MERCI managed content types.'));
+}
+
+function merci_inventory_enable() {
+  // create content types
+  include_once('./' . drupal_get_path('module', 'merci_inventory') . '/includes/content_types/content_types.inc');
+  _merci_inventory_install_create_content_types();
+  merci_inventory_create_cck_fields();
+}
+// function merci_inventory_install
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function merci_inventory_uninstall() {
+
+
+  // delete any merci_inventory_master nodes... even though there really shouldn't be any
+  $result = db_query(db_rewrite_sql("SELECT nid FROM {node} n WHERE type IN ('merci_inventory_master', 'merci_inventory')"));
+  while ($node = db_fetch_object($result)) {
+    node_delete($node->nid);
+  }
+
+  // Need to load the CCK include file where content_field_instance_create() is defined.
+  module_load_include('inc', 'content', 'includes/content.crud');
+  $results = db_query("SELECT field_name,type_name FROM {" . content_instance_tablename() . "} WHERE type_name IN ('merci_inventory_master', 'merci_inventory')");
+  while ($field = db_fetch_array($results)) {
+    content_field_instance_delete($field['field_name'], $field['type_name'], FALSE);
+  }
+  // Force the caches and static arrays to update to the new info.
+  content_clear_type_cache(TRUE);
+  // delete CCK content_types
+  $return = node_type_delete('merci_inventory_master');
+  // You'd think the uninstall submit function would take care of this
+  // but it doesn't look like it.
+  node_types_rebuild();
+  menu_rebuild();
+
+  drupal_set_message(t('MERCI Inventory module successfully uninstalled.  merci_inventory_master content type and nodes deleted.'));
+}
+// merci_inventory_uninstall
+
+function merci_inventory_create_cck_fields() {
+  $merci_inventory_fields = array (
+    0 => 
+    array (
+      'label' => 'Inventory item',
+      'field_name' => 'field_merci_inventory_item',
+      'type_name' => 'merci_inventory',
+      'type' => 'nodereference',
+      'widget_type' => 'nodereference_select',
+      'required' => 0,
+      'multiple' => '1',
+      'locked' => 1,
+    ),
+  );
+  // Need to load the CCK include file where content_field_instance_create() is defined.
+  module_load_include('inc', 'content', 'includes/content.crud');
+
+  var_dump($merci_inventory_fields);
+  foreach ($merci_inventory_fields as $field) {
+    // Create the fields
+    if (!content_field_instance_read(array('field_name' => $field['field_name']), TRUE)) {
+      var_dump($field);
+      content_field_instance_create($field, FALSE);
+    }
+  }
+  // Clear caches and rebuild menu.
+  content_clear_type_cache(TRUE);
+  menu_rebuild();
+}

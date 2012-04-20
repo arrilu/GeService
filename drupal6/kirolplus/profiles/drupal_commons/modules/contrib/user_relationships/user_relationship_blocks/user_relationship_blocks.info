@@ -1,0 +1,6 @@
+name = UR-Blocks
+description = "Blocks that can be used with User Relationships"
+dependencies[] = user_relationships_api
+dependencies[] = user_relationships_ui
+package = "User Relationships"
+core = 6.x

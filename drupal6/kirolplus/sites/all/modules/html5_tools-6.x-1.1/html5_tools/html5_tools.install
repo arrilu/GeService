@@ -1,0 +1,29 @@
+<?php
+// $Id: html5_tools.install,v 1.2.2.1 2011/01/21 04:44:30 ericduran Exp $
+
+/**
+ * @file
+ * Set up htm5_tools to be the heaviest.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function html5_tools_install() {
+  _html5_tools_heaviest();
+}
+
+/**
+ * Update function.
+ * - Make this module the heaviest module in the system table.
+ */
+function html5_tools_update_6000() {
+  _html5_tools_heaviest();
+}
+
+/**
+ * Helper function that makes html5_tools the heaviest module.
+ */
+function _html5_tools_heaviest() {
+  db_query("UPDATE {system} SET weight = %d WHERE name = 'html5_tools'", 100000);
+}

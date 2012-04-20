@@ -1,0 +1,6 @@
+; $Id$
+name = Ajax load example
+description = Example module to demonstrate Ajax load functionality.
+package = User interface
+dependencies[] = ajax_load
+core = 6.x

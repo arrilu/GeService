@@ -1,0 +1,23 @@
+<?php
+
+
+/**
+ * @file
+ * merci_template Installer / Uninstaller
+ */
+
+/**
+ * Implementation of hook_disable().
+ */
+function merci_template_disable() {
+
+  // Delete all merci_reservation_template nodes
+
+  db_query("DELETE FROM {node} WHERE type = 'merci_reservation_template'");
+
+  // Delete the merci_reservation_template content type
+
+  node_type_delete('merci_reservation_template');
+}
+// merci_template_disable
+

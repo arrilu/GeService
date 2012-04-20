@@ -1,0 +1,7 @@
+name = Views Content Cache Tests Helper
+description = Provides helpers for testing the views cache plugin.
+package = Views
+core = 6.x
+dependencies[] = views
+dependencies[] = ctools
+hidden = TRUE

@@ -1,0 +1,16 @@
+name = Acquia search
+description = "Provides integration between your Drupal site and Acquia's hosted search service."
+package = Acquia Network Connector
+core = 6.x
+project = acquia_search
+project status url = http://updates.acquia.com/release-history
+version = "6.x-1.5699"
+dependencies[] = acquia_agent
+dependencies[] = apachesolr
+dependencies[] = apachesolr_search
+dependencies[] = search
+
+
+; Information added by Acquia.com packaging script
+acquia = "1"
+

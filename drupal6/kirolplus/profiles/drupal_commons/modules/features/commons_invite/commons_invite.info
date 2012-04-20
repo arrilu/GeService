@@ -1,0 +1,23 @@
+core = "6.x"
+dependencies[] = "context"
+dependencies[] = "features"
+dependencies[] = "invite_stats"
+description = "Allow users to send invitations to people to join the site"
+features[context][] = "profile-me-invite"
+features[ctools][] = "context:context:3"
+features[user_permission][] = "administer invitations"
+features[user_permission][] = "send invitations"
+features[user_permission][] = "send mass invitations"
+features[user_permission][] = "track invitations"
+features[user_permission][] = "view invite statistics"
+features[user_permission][] = "view own invite statistics"
+features[user_permission][] = "withdraw accepted invitations"
+name = "Commons Invite"
+package = "Commons"
+
+; Information added by drupal.org packaging script on 2012-02-14
+version = "6.x-2.5"
+core = "6.x"
+project = "commons"
+datestamp = "1329191737"
+

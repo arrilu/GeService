@@ -1,0 +1,6 @@
+; $Id$
+name = Userpoints Role
+description = Users join/leave roles as they earn/lose certain points threshold, and get an email.
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x

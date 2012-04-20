@@ -1,0 +1,536 @@
+<?php
+
+/**
+ * @file
+ * Defines a field, widget and formatter for the button field type.
+ */
+
+/**
+ * Implementation of hook_menu().
+ * 
+ * @return array
+ */
+function button_field_menu() {
+  $items['button_field/callback'] = array(
+    'description' => 'Callback used when a button field is clicked on',
+    'page callback' => 'button_field_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  ); // end $items
+  
+  return $items;
+} // end function button_field_menu()
+
+/**
+ * Page callback for simple_webservices/soap
+ * 
+ * @global stdClass $user
+ * 
+ * @return string
+ */
+function button_field_callback() {
+  global $user;
+  
+  $id = $_REQUEST['id'];
+  list($field_name, $nid) = explode('-', $id);
+  rules_invoke_event('button_field_clicked', node_load($nid), $user);
+  
+  // check to see if we have a page to redirect to
+  $return_array = array();
+  if (isset($_REQUEST['destination']) && !empty($_REQUEST['destination'])) {
+    $return_array['redirect'] = urldecode($_REQUEST['destination']);
+  } // end if we have a page to redirect to
+  
+  echo json_encode($return_array);
+  exit;
+} // end function button_field_callback()
+
+/**
+ * Implementation of hook_field_info().
+ * 
+ * @return array
+ */
+function button_field_field_info() {
+  return array(
+    'button_field' => array('label' => 'Button'),
+  ); // end return
+} // end function button_field_field_info()
+
+/**
+ * Implementation of hook_widget_info().
+ * 
+ * @return array
+ */
+function button_field_widget_info() {
+  return array(
+    'button_field_html' => array(
+      'label' => 'HTML Button',
+      'field types' => array('button_field'),
+    ),
+    'button_field_image' => array(
+      'label' => 'Image Button',
+      'field types' => array('button_field'),
+    ),
+  ); // end return
+} // end function universitydegrees_widget_info()
+
+/**
+ * Implementation of hook_field_settings().
+ * 
+ * @param string $op
+ * @param string $field
+ * @return array
+ */
+function button_field_field_settings($op, $field) {
+  switch ($op) {
+    case 'database columns':
+      
+      $columns['value'] = array('type' => 'int', 'size' => 'tiny',
+        'not null' => FALSE, 'sortable' => FALSE, 'views' => TRUE);
+      return $columns;
+      break;
+    
+    case 'form':
+      
+      // hide the multiple and required fields, since buttons don't store
+      // anything
+      $form = array();
+      $form['multiple'] = array(
+        '#type' => 'hidden',
+        '#value' => '0',
+      ); // end $form['multiple']
+      
+      $form['required'] = array(
+        '#type' => 'hidden',
+        '#value' => NULL,
+      ); // end $form['required']
+      
+      $form['confirmation'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Confirmation message'),
+        '#default_value' => (isset($field['confirmation'])
+          ? $field['confirmation'] : FALSE),
+        '#description' => t('You may enter a confirmation message to be ' .
+            'displayed to the user before running any rules. If you do not ' .
+            'want the user to see a confirmation message you can leave this ' .
+            'setting empty.'),
+      ); // end $form['confirmation']
+      
+      return $form;
+      break;
+    
+    case 'save':
+      
+      return array('confirmation');
+      break;
+  } // end switch $op
+} // end function button_field_field_settings()
+
+/**
+ * Implementation of hook_field_formatter_info().
+ * 
+ * @return array
+ */
+function button_field_field_formatter_info() {
+  return array(
+    'default' => array(
+      'label' => t('Default'),
+      'field types' => array('button_field'),
+      'multiple values' => CONTENT_HANDLE_CORE,
+    ),
+  ); // end return
+} // end function button_field_field_formatter_info()
+
+/**
+ * Theme function for the 'default' filefield formatter.
+ * 
+ * @param array $element
+ * @return string
+ */
+function theme_button_field_formatter_default($element) {
+  $node = $element['#node'];
+  $field = content_fields($element['#field_name'], $element['#type_name']);
+  $name = $field['field_name'] . '-' . $node->nid;
+  $class = 'button_field' . (isset($field['widget']['additional_class'])
+    ? ' ' . $field['widget']['additional_class'] : '');
+  
+  // add the javascript and css files
+  drupal_add_js(drupal_get_path('module', 'button_field') .
+    '/js/button_field.js');
+  drupal_add_css(drupal_get_path('module', 'button_field') .
+    '/css/button_field.css');
+  
+  // add the confirmation setting
+  $settings[$name] = array('confirmation' => $field['confirmation']);
+  drupal_add_js($settings, 'setting');
+  
+  // determine the widget type
+  switch ($field['widget']['type']) {
+    case 'button_field_html':
+      
+      $return_value = '<button id="' . $name . '" name="' . $name . '" ' .
+        'class="' . $class . '">' .
+      $field['widget']['text'] . '</button>' . "\n";
+      break;
+    
+    case 'button_field_image':
+      
+      $return_value = '<img src="' . $field['widget']['image_path'] . '" ' .
+        'alt="' . $field['widget']['alt_text'] . '" ' .
+        'title="' . $field['widget']['title_text'] . '" ' .
+        'id="' . $name . '" name="' . $name . '" class="' . $class . '" />' .
+            "\n";
+      break;
+  } // end switch $field['widget']['type']
+  
+  return $return_value;
+} // end function theme_button_field_formatter_default
+
+/**
+ * Implementation of hook_widget_settings().
+ * 
+ * @param string $op
+ * @param array $widget
+ * @return array
+ */
+function button_field_widget_settings($op, $widget) {
+  // check to see if we are saving
+  if ($op == 'save') {
+    return array('text', 'image_path', 'title_text', 'alt_text',
+      'additional_class', 'edit_hidden');
+  } // end if we are saving
+  
+  // determine which widget was selected
+  switch ($widget['type']) {
+    case 'button_field_html':
+      
+      return _button_field_widget_settings_html($op, $widget);
+      break;
+    
+    case 'button_field_image':
+      
+      return _button_field_widget_settings_image($op, $widget);
+      break;
+  } // end switch $widget['type']
+} // end function button_field_widget_settings()
+
+/**
+ * Builds the array of common settings for the button widgets for button fields.
+ * 
+ * Based on code submitted by AlfredSanta.
+ * 
+ * @link http://drupal.org/node/681318
+ * @param string $op
+ * @param array $widget
+ * @return array
+ */
+function _button_field_widget_settings_common($op, $widget) {
+  switch ($op) {
+    case 'form':
+      
+      $form['additional_class'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Additional class'),
+        '#default_value' => (isset($widget['additional_class'])
+          ? $widget['additional_class'] : NULL),
+        '#description' => t('Optionally, specify a class to be applied to ' .
+          'the element. All button field elements will always contain the ' .
+          '"button_field" class. This option allows you to specify an ' .
+          'additional class for styling your elements.'),
+      ); // end $form['additional_class']
+      
+      $form['edit_hidden'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Hide on edit form'),
+        '#default_value' => (isset($widget['edit_hidden'])
+          ? $widget['edit_hidden'] : TRUE),
+        '#description' => t('Whether or not this field will be rendered on ' .
+          'the node edit and add forms.  Note: Nodes do not get assisgned a ' .
+          'node id on the add form; therefore, any Rules that require the ' .
+          'node to be available on button click will not function properly.'),
+      ); // end $form['edit_hidden']
+      
+      return $form;
+      break;
+  } // end switch $op
+} // end function _button_field_widget_settings_common()
+
+/**
+ * Builds the array of setting for the HTML button widget for button fields.
+ * 
+ * @param string $op
+ * @param array $widget
+ * @return array
+ */
+function _button_field_widget_settings_html($op, $widget) {
+  // determine the current operation
+  switch ($op) {
+    case 'form':
+      
+      $form = array();
+      $form['text'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Button Text'),
+        '#default_value' => (isset($widget['text']) ? $widget['text']
+          : $widget['label']),
+        '#required' => TRUE,
+      ); // end $form['text']
+      
+      $form = array_merge($form,
+        _button_field_widget_settings_common($op, $widget));
+      
+      return $form;
+      break;
+  } // end switch $op
+} // end function _button_field_widget_settings_html()
+
+/**
+ * Builds the array of setting for the image button widget for button fields.
+ * 
+ * @param string $op
+ * @param array $widget
+ * @return array
+ * 
+ * @todo get file field working
+ */
+function _button_field_widget_settings_image($op, $widget) {
+  // determine the current operation
+  switch ($op) {
+    case 'form':
+      
+      $form = array();
+//      $form['image'] = array(
+//        '#type' => 'file',
+//        '#title' => t('Button image'),
+//        '#default_value' => (isset($widget['image']) ? $widget['image'] : NULL),
+//        '#required' => TRUE,
+//      );
+      $form['image_path'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Image path'),
+        '#default_value' => (isset($widget['image_path'])
+          ? $widget['image_path'] : NULL),
+        '#required' => TRUE,
+      ); // end $form['image_path']
+      
+      $form['alt_text'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Alt text'),
+        '#default_value' => (isset($widget['alt_text']) ? $widget['alt_text']
+          : $widget['label']),
+        '#required' => TRUE,
+      ); // end $form['alt_text']
+      
+      $form['title_text'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Title text'),
+        '#default_value' => (isset($widget['title_text'])
+          ? $widget['title_text'] : $widget['label']),
+        '#required' => FALSE,
+      ); // end $form['title_text']
+      
+      $form = array_merge($form,
+        _button_field_widget_settings_common($op, $widget));
+      
+      return $form;
+      break;
+  } // end switch $op
+} // end function _button_field_widget_settings_image()
+
+/**
+ * Implementation of hook_widget().
+ * 
+ * Attach a single form element to the form.
+ * 
+ * CCK core fields only add a stub element and builds
+ * the complete item in #process so reusable elements
+ * created by hook_elements can be plugged into any
+ * module that provides valid $field information.
+ * 
+ * Custom widgets that don't care about using hook_elements
+ * can be built out completely at this time.
+ * 
+ * If there are multiple values for this field and CCK is
+ * handling multiple values, the content module will call
+ * this function as many times as needed.
+ * 
+ * @param $form
+ *   the entire form array,
+ *   $form['#node'] holds node information
+ * @param $form_state
+ *   the form_state,
+ *   $form_state['values'][$field['field_name']]
+ *   holds the field's form values.
+ * @param $field
+ *   the field array
+ * @param $items
+ *   array of default values for this field
+ * @param $delta
+ *   the order of this item in the array of
+ *   subelements (0, 1, 2, etc)
+ * @return
+ *   the form item for a single element for this field
+ */
+function button_field_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  // add the javascript and css files
+  drupal_add_js(drupal_get_path('module', 'button_field') .
+    '/js/button_field.js');
+  drupal_add_css(drupal_get_path('module', 'button_field') .
+    '/css/button_field.css');
+  
+  // determine the widget type
+  switch ($field['widget']['type']) {
+    case 'button_field_html':
+      
+      return ($field['widget']['edit_hidden']
+        ? array()
+        : _button_field_widget_html($form, $form_state, $field, $items,
+          $delta));
+      break;
+    
+    case 'button_field_image':
+      
+      return ($field['widget']['edit_hidden']
+        ? array()
+        : _button_field_widget_image($form, $form_state, $field, $items,
+          $delta));
+      break;
+  } // end switch $field['widget']['type']
+} // end function button_field_widget()
+
+/**
+ * Implementation of hook_widget().
+ * 
+ * Attach a single form element to the form.
+ * 
+ * CCK core fields only add a stub element and builds
+ * the complete item in #process so reusable elements
+ * created by hook_elements can be plugged into any
+ * module that provides valid $field information.
+ * 
+ * Custom widgets that don't care about using hook_elements
+ * can be built out completely at this time.
+ * 
+ * If there are multiple values for this field and CCK is
+ * handling multiple values, the content module will call
+ * this function as many times as needed.
+ * 
+ * @param $form
+ *   the entire form array,
+ *   $form['#node'] holds node information
+ * @param $form_state
+ *   the form_state,
+ *   $form_state['values'][$field['field_name']]
+ *   holds the field's form values.
+ * @param $field
+ *   the field array
+ * @param $items
+ *   array of default values for this field
+ * @param $delta
+ *   the order of this item in the array of
+ *   subelements (0, 1, 2, etc)
+ * @return
+ *   the form item for a single element for this field
+ */
+function _button_field_widget_html(&$form, &$form_state, $field, $items,
+  $delta) {
+  $name = $field['field_name'] . '-' . (isset($form['nid']['#value'])
+    ? $form['nid']['#value'] : 0);
+  $class = 'button_field' . (isset($field['widget']['additional_class'])
+    ? ' ' . $field['widget']['additional_class'] : '');
+  
+  $element['value'] = array(
+    '#type' => 'button',
+    '#attributes' => array('class' => $class),
+    '#id' => $field['field_name'] . '-' . $form['nid']['#value'],
+    '#value' => (isset($field['widget']['text'])
+      ? $field['widget']['text'] : $field['widget']['label']),
+    '#prefix' => '<div class="form-item">',
+    '#suffix' => '<div class="description">' .
+      (!empty($field['widget']['description']) ? $field['widget']['description']
+        : '') . '</div></div>',
+  ); // end $element['value']
+  
+  return $element;
+} // end function _button_field_widget_html()
+
+/**
+ * Implementation of hook_widget().
+ * 
+ * Attach a single form element to the form.
+ * 
+ * CCK core fields only add a stub element and builds
+ * the complete item in #process so reusable elements
+ * created by hook_elements can be plugged into any
+ * module that provides valid $field information.
+ * 
+ * Custom widgets that don't care about using hook_elements
+ * can be built out completely at this time.
+ * 
+ * If there are multiple values for this field and CCK is
+ * handling multiple values, the content module will call
+ * this function as many times as needed.
+ * 
+ * @param $form
+ *   the entire form array,
+ *   $form['#node'] holds node information
+ * @param $form_state
+ *   the form_state,
+ *   $form_state['values'][$field['field_name']]
+ *   holds the field's form values.
+ * @param $field
+ *   the field array
+ * @param $items
+ *   array of default values for this field
+ * @param $delta
+ *   the order of this item in the array of
+ *   subelements (0, 1, 2, etc)
+ * @return
+ *   the form item for a single element for this field
+ */
+function _button_field_widget_image(&$form, &$form_state, $field, $items,
+  $delta) {
+  $name = $field['field_name'] . '-' . (isset($form['nid']['#value'])
+    ? $form['nid']['#value'] : 0);
+  $class = 'button_field' . (isset($field['widget']['additional_class'])
+    ? ' ' . $field['widget']['additional_class'] : '');
+  
+  $element['value'] = array(
+    '#type' => 'item',
+    '#value' => '<img src="' . $field['widget']['image_path'] . '" ' .
+      'alt="' . $field['widget']['alt_text'] . '" ' .
+      'title="' . $field['widget']['title_text'] . '" ' .
+      'id="' . $name . '" name="' . $name . '" class="' . $class . '" />' .
+      "\n",
+    '#prefix' => '<div class="form-item">',
+    '#suffix' => '<div class="description">' .
+      (!empty($field['widget']['description']) ? $field['widget']['description']
+        : '') . '</div></div>',
+  ); // end $element['value']
+  
+  return $element;
+} // end function _button_field_widget_image()
+
+/**
+ * Implementation of hook_theme().
+ */
+function button_field_theme() {
+  return array(
+    'button_field_formatter_default' => array(
+      'arguments' => array('element' => NULL),
+    )
+  );
+} // end function button_field_theme()
+
+/**
+ * Implementation of CCK's hook_content_is_empty().
+ * 
+ * The result of this determines whether content.module will save the value of
+ * the field. Note that content module has some interesting behaviors for empty
+ * values. It will always save at least one record for every node revision,
+ * even if the values are all NULL. If it is a multi-value field with an
+ * explicit limit, CCK will save that number of empty entries.
+ */
+function button_field_content_is_empty($item, $field) {
+  return TRUE;
+} // end function button_field_content_is_empty()

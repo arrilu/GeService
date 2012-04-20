@@ -1,0 +1,14 @@
+name = Tagging opencalais suggestions
+description = This tagging module exposes suggestions based on the current content (body) using the semantic opencalais service
+package = "Taxonomy"
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = tagging
+dependencies[] = calais_api
+
+; Information added by drupal.org packaging script on 2011-12-01
+version = "6.x-3.2"
+core = "6.x"
+project = "tagging"
+datestamp = "1322729152"
+

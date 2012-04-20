@@ -1,0 +1,5 @@
+; $Id$
+name = Ajax Load
+description = Helper module to load and add JavasScript and CSS data for Ajax-loaded content.
+package = User interface
+core = 6.x

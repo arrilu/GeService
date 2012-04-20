@@ -1,0 +1,6 @@
+; $Id$
+name = Userpoints Admin Email
+description = Notifies the site admin when any user reaches a certain number of points
+dependencies[] = userpoints
+package = Userpoints
+core = 6.x

@@ -1,0 +1,13 @@
+name = Shoutbox group
+core = 6.x
+description = Extends shoutbox functionality to Organic groups
+dependencies[] = og
+dependencies[] = shoutbox
+package = Shoutbox
+
+; Information added by drupal.org packaging script on 2011-08-16
+version = "6.x-2.7"
+core = "6.x"
+project = "shoutbox"
+datestamp = "1313476651"
+

@@ -1,0 +1,7 @@
+; $Id$
+name = Userpoints Invite
+description = Users earn points when they invite other, and when others register.
+package = Userpoints
+dependencies[] = userpoints
+dependencies[] = invite
+core = 6.x

@@ -1,0 +1,6 @@
+;$Id$
+name = User Points Node Limit
+description = Limits the creation of specific nodes based on the available number of userpoints
+package = Userpoints
+core = 6.x
+dependencies[] = userpoints

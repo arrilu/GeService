@@ -1,0 +1,113 @@
+<?php
+
+
+/**
+ * @file
+ * Hooks and functions for MERCI Inventory
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function merci_inventory_menu() {
+
+  $items = array();
+
+  $items['admin/settings/merci/field_sync'] = array(
+    'title' => 'Synchronize Fields',
+    'page callback' => 'merci_inventory_field_sync',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer MERCI'),
+    'description' => t('Copy fields MERCI Inventory Master fields to other content types.'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+// merci_inventory_menu
+
+function merci_inventory_field_sync() {
+  //@TODO: Check to see that merci_inventory_master content type exists
+  drupal_goto('admin/content/node-type/merci-inventory-master/field_sync');
+}
+
+function merci_inventory_form(&$node, $form_state) {
+}
+/**
+ * Implementation of hook_node_info().
+ */
+function merci_inventory_node_info() {
+  return array(
+    // Inventory nodes.
+    'merci_inventory' => array(
+      'name' => t('Inventory'),
+      'module' => 'merci_inventory',
+      'has_body' => TRUE,
+      'description' => t("An Inventory node contains a simple list of other nodes."),
+    ),
+    // Inventory Master nodes.
+    'merci_inventory_master' => array(
+      'name' => t('Inventory Master'),
+      'module' => 'merci_inventory',
+      'has_body' => FALSE,
+      'description' => t("Add additional CCK fields to the Inventory Master content type to synchronize to other MERCI managed content types."),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_node_operations().
+ */
+function merci_inventory_node_operations($return = null) {
+  $operations = array(
+    'merci_inventory_update' => array(
+      'label' => t('Confirm Selected Items Are Currently in Inventory'),
+      'callback' => 'merci_inventory_operations_update',
+    ),
+  );
+  return $operations;
+}
+
+/**
+ * Callback function for adding items to new merci_inventory node.
+ */
+function merci_inventory_operations_update($nodes) {
+  global $user;
+
+  $account = user_load(array('uid' => $user->uid));
+
+  // Construct the new node object.
+  $node = new stdClass();
+
+  $node->title = 'Inventory - ' . format_date(time(), $type = 'small');
+  $node->type = 'merci_inventory';
+  $node->created = time();
+  $node->changed = $node->created;
+  $node->status = 1; // Published?
+  $node->promote = 0; // Display on front page?
+  $node->sticky = 0; // Display top of page?
+  $node->format = 1; // Filtered HTML?
+  $node->uid = $account->uid; //  Content owner uid (author)?
+  $node->language = 'en';
+
+  $count = 0;
+  foreach ($nodes as $nid) {
+    $node->field_merci_inventory_item[$count]['nid']  = $nid;
+    $count++;
+  }
+
+  //node_submit($node);
+  node_save($node);
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function merci_inventory_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'merci_inventory'),
+  );
+}
+

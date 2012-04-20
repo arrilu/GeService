@@ -1,0 +1,12 @@
+
+name = "User Terms"
+description = "Allows users to be associated with taxonomy terms."
+core = "6.x"
+dependencies[] = taxonomy
+
+; Information added by drupal.org packaging script on 2011-09-29
+version = "6.x-1.4"
+core = "6.x"
+project = "user_terms"
+datestamp = "1317330108"
+

@@ -1,0 +1,6 @@
+name = UR-Panels Visibility
+description = "Provide visibility for panels panes and pages based on User Relationships"
+dependencies[] = user_relationships_api
+dependencies[] = ctools
+core = 6.x
+package = "User Relationships"

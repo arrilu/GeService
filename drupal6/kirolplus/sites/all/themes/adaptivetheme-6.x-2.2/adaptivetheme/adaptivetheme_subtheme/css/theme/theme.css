@@ -1,0 +1,1014 @@
+/**
+ * $Id: theme.css,v 1.1.2.19 2010/03/23 03:29:25 jmburnz Exp $
+ * adaptivethemes.com
+ *
+ * @file theme.css
+ * theme.css is the file to use when building your theme. 
+ * Make a copy first as a backup.
+ */
+
+/**********************************************************
+ *                    HTML & Body
+ **********************************************************/
+html {}
+body {}
+
+/* Admin menu */
+body.admin-menu {}
+body.admin-menu #container {}
+
+/**********************************************************
+ *                 HTML Elements
+ **********************************************************/
+h1 {}
+h2 {}
+h3 {}
+h4 {}
+h5 {}
+h6 {}
+
+p {}
+
+strong {}
+em, dfn {}
+dfn {}
+
+sup, sub {}
+
+del {}
+ins {}
+
+blockquote {}
+cite {}
+q {}
+
+address {}
+
+ul {}
+ol {}
+li {}
+
+dl {}
+dd {}
+dt {}
+
+abbr {}
+acronym {}
+
+pre, code, tt {}
+p code {}
+samp {}
+kbd {}
+var {}
+
+
+/**********************************************************
+ *                 Global Link Styles
+ **********************************************************/
+a {}
+a:link    {}
+a:visited {}
+a:hover   {}
+a:active  {}
+a.active  {}
+
+/* Set global a:active and a:focus styles. */
+a:active,
+a:focus {}
+
+
+/**********************************************************
+ *                    Body Classes
+ **********************************************************/
+ /* NOTE: these are not active by default; you need to 
+    enable them in the Advanced theme settings. */
+
+/* Front or not front. */
+.front {}
+.not-front {}
+
+/* Is the user logged in. */
+.logged-in {}
+.not-logged-in {}
+
+/* Content type body classes. */
+.article-type-book  {}
+.article-type-blog  {}
+.article-type-forum {}
+.article-type-page  {}
+.article-type-poll  {}
+.article-type-story {}
+
+	
+/**********************************************************
+ *                  The wrapper divs
+ *    Be careful how you modify these, see layout.css
+ **********************************************************/
+#container {}
+
+/* Column wrappers */
+#columns {}
+.columns-inner {}
+
+/* Content wrappers */
+#content-column {}
+.content-inner {}
+
+/* Main content wrappers*/
+#main-content {}
+#content {}
+
+
+/**********************************************************
+ *                       Regions
+ **********************************************************/
+/* Leaderboard is a full width region at the very top of the page. */
+#leaderboard {}
+
+/* Header region is embedded in the header, floated between the logo/site_name
+   and the search box. */
+#header-region {}
+
+/* Menu Bar sits below the header and is ideal for dynamic menus 
+   such as http://drupal.org/project/superfish. */
+#menu-bar {}
+
+/* Secondary content is a full width region between the header and the
+   main columns. */
+#secondary-content {}
+
+/* Tertiary content is a full width region above the footer, below the
+   main content. */
+#tertiary-content {}
+
+/* Content top and bottom are above and below the main content, within the main 
+   content column. Content aside floats to the right within the main central
+   column, but below content top. */
+#content-top {}
+#content-aside {}
+#content-bottom {}
+
+/* Article aside appears only in articles (nodes). By default its placed at
+   the bottom of the node.tpl.php template. */
+#article-aside {}
+
+
+/**********************************************************
+ *                      Sidebars
+ **********************************************************/
+/* Target both sidebars with this low specifity selector. */
+.sidebar {}
+
+/* Target a specific sidebar. */
+#sidebar-first {}
+#sidebar-last {}
+
+
+/**********************************************************
+ *                   Skip navigation
+ **********************************************************/
+/**
+ * DO NOT USE display:none as this hides it from screen readers!
+ */
+#skip-nav {}
+
+/* Override default pseudo class styles */
+#skip-nav a:link    {}
+#skip-nav a:visited {}
+#skip-nav a:hover   {}
+#skip-nav a:focus   {}
+#skip-nav a:active  {}
+
+
+/**********************************************************
+ *                 Header Elements
+ **********************************************************/
+/* #header wraps #branding, #search-box-top and #header-blocks. */
+#header {}
+
+/* #branding wraps #logo, #site-name and #site-slogan. */
+#branding {}
+
+/* Logo and Site Name wrapper. */
+.logo-site-name {}
+
+/* Logo and Site Name wrapper h1 - normally applies only the homepage. */
+h1.logo-site-name  {}
+
+/* Logo and Site Name wrapper DIV - normally applies to all internal pages,
+   or where no title is set. */
+div.logo-site-name {}
+
+/* DIV/strong combo when when title is set. */
+div.logo-site-name strong {}
+
+/* By default the span is set to display:block, you can display:inline
+   or float the elements to get them all on one line. */
+.logo-site-name span {}
+
+/* Logo and Site Name SPAN wrappers. */
+span#logo {}
+span#site-name {}
+
+/* Override default pseudo class styles. */
+#site-name a:link    {}
+#site-name a:visited {}
+#site-name a:hover   {}
+#site-name a:focus   {}
+#site-name a:active  {}
+
+/* Site slogan. */
+#site-slogan {}
+
+
+/**********************************************************
+ *    Search box, Advanced search form, Search results
+ *          For the search block see blocks.css
+ **********************************************************/
+/**
+ * Search box
+ */
+/* Float the serch box right. */
+#search-box {}
+
+/* Reset form element margins. */
+#search-theme-form {}
+
+/* Wrapper DIVs */
+#search-theme-form > div {}
+#search-theme-form #search {}
+#edit-search-theme-form-1-wrapper {}
+
+#search-theme-form label {}
+#search-theme-form input {}
+
+#search-theme-form .form-text {}
+#search-theme-form .form-submit {}
+
+/**
+ * Advanced search form
+ */
+/* Advanced search-form id. */
+#search-form {}
+
+/* Use the child selector because the inner div has no class. */
+#search-form > div {}
+#search-form .container-inline {}
+#search-form #edit-keys-wrapper {}
+
+#search-form label {}
+#search-form input {}
+#search-form .form-item {}
+#search-form .form-submit {}
+
+/* Textfield styles. */
+#search-form #edit-keys-wrapper input {}
+#search-form #edit-keys-wrapper input:hover,
+#search-form #edit-keys-wrapper input:focus {}
+
+/* Advanced search fieldset. */
+#search-form fieldset.search-advanced {}
+
+/**
+ * Search results
+ */
+/* Box styles for the results page. */
+.section-search .box {}
+.section-search .box-inner {}
+.section-search .box-title {}
+
+/* Style the no results messages. */
+.section-search .box ul {}
+.section-search .box ul li {}
+
+/* Search results document list. */
+dl.search-results {}
+dl.search-results dt {}
+dl.search-results dd {}
+dl.search-results dd p {}
+dl.search-results dd .search-snippet {}
+dl.search-results dd .search-info {}
+
+span.search-info-type {}
+span.search-info-user {}
+span.search-info-date {}
+span.search-info-comment {}
+span.search-info-upload  {}
+
+
+/**********************************************************
+ *               Primary & Secondary Links
+ **********************************************************/
+/* Primary-links div wrapper */
+#primary {}
+
+/* Class on the ul */
+.primary-links {}
+
+/* Modify the margin to set tab spacings. */
+.primary-links li {}
+.primary-links li a {}
+
+/* Set pseudo class styles. */
+.primary-links li a:link {}
+.primary-links li a:visited {}
+.primary-links li a:hover {}
+.primary-links li a:focus {}
+.primary-links li a:active {}
+
+/* Primary first and last classes. */
+.primary-links li.first {}
+.primary-links li.last {}
+
+/* Active trail classes. */
+.primary-links li.active {}
+.primary-links li.active-trail {}
+.primary-links li.active-trail a {}
+
+/* Secondary-links div wrapper */
+#secondary {}
+
+/* Class on the ul */
+.secondary-links {}
+
+/* Modify the margin to set tab spacings. */
+.secondary-links li {}
+.secondary-links li a {}
+
+/* Set pseudo class styles. */
+.secondary-links li a:link {}
+.secondary-links li a:visited {}
+.secondary-links li a:hover {}
+.secondary-links li a:focus {}
+.secondary-links li a:active {}
+
+/* Secondary first and last classes. */
+.secondary-links li.first {}
+.secondary-links li.last {}
+
+/* Active trail classes. */
+.secondary-links li.active {}
+.secondary-links li.active-trail {}
+.secondary-links li.active-trail a {}
+
+
+/**********************************************************
+ *                      Breadcrumb
+ **********************************************************/
+#breadcrumb {}
+#breadcrumb a {}
+#breadcrumb a:link {}
+#breadcrumb a:visited {}
+#breadcrumb a:hover {}
+#breadcrumb a:focus {}
+#breadcrumb a:active {}
+
+
+/**********************************************************
+ *                       Mission
+ **********************************************************/
+#mission {}
+
+
+/**********************************************************
+ *                    H1 Page Title
+ **********************************************************/
+h1#page-title {}
+
+
+/**********************************************************
+ *                     Pager 
+ **********************************************************/
+/* The first 2 classes provide the base pager styles. */
+ul.pager    {}
+ul.pager li {}
+
+/* Theme the various states of pager links. */
+ul.pager li a:link    {}
+ul.pager li a:visited {}
+ul.pager li a:hover   {}
+
+/* Note: .pager-current is for the current page. */
+ul.pager li.pager-item     {}
+ul.pager li.first          {}
+ul.pager li.last           {}
+ul.pager li.pager-current  {}
+ul.pager li.pager-first    {}
+ul.pager li.pager-previous {}
+ul.pager li.pager-next     {}
+ul.pager li.pager-last     {}
+
+
+/**********************************************************
+ *               Footer, Footer Message
+ **********************************************************/
+#footer {}
+
+#footer-region {}
+#footer-region a {}
+
+#footer-message {}
+#footer-message a {}
+
+
+/**********************************************************
+ *                 RSS Feed Icon
+ **********************************************************/
+#feed-icons {}
+#feed-icons .feed-icon {}
+#feed-icons .feed-icon img {}
+#feed-icons a.feed-icon {}
+
+
+/**********************************************************
+ *                  Generic Content Classes
+ **********************************************************/
+.title {}
+.submitted {}
+.submitted em {}
+.submitted a {}
+.content {}
+ul.links {}
+ul.links li {}
+ul.links li a {}
+
+
+/**********************************************************
+ *                      Articles (nodes)
+ **********************************************************/
+.article {}
+
+/* Teaser title (H2). */
+.article-title {}
+
+.article-title a:link,
+.article-title a:visited {}
+.article-title a:hover,
+.article-title a:focus,
+.article-title a:active {}
+
+/* User Picture. */
+.article .user-picture {}
+.article .user-picture img {}
+
+/* Submitted */
+.article .submitted {}
+.article .submitted em {}
+.article .submitted a {}
+.article .submitted a:hover {}
+.article .submitted .author {}
+.article .submitted .time {}
+
+/* Common links classes. */
+.article ul.links {}
+.article ul.links li {}
+.article ul.links li a {}
+
+/* Taxonomy terms. */
+/* Term list */
+ul.taxonomy {}
+ul.taxonomy li {}
+ul.taxonomy li a {}
+/* With vocab headers */
+ul.taxonomy li.vocab {}
+.vocab-name {}
+ul.vocab-list {}
+ul.vocab-list li {}
+ul.vocab-list li a {}
+
+/* Style module links. */
+ul.links li.node_read_more a {}
+ul.links li.comment_add a {}
+ul.links li.comment_comments a {}
+ul.links li.comment_new_comments a {}
+ul.links li.blog_usernames_blog a {}
+ul.links li.print_html a {}
+ul.links li.print_email a {}
+ul.links li.print_pdf a {}
+
+/* UL link first and last classes. */
+.article ul.links li.first {}
+.article ul.links li.last  {}
+
+/* Workflow states. */
+.article-add    {}
+.article-edit   {}
+.article-delete {}
+.article-preview  {}
+.article-sticky   {}
+.article-promoted {}
+
+/* Status. */
+.article-unpublished {}
+
+/* Theme the teaser seperatly. */
+.article-teaser {}
+
+
+/**********************************************************
+ *                     Content types
+ *              Style article types by type.
+ **********************************************************/
+.book-article  {}
+.blog-article  {}
+.forum-article {}
+.page-article  {}
+.poll-article  {}
+.story-article {}
+
+ /**
+  * Custom Content Types
+  * Replace CONTENT_TYPE with the content type
+  * machine-readable name.
+  */
+.CONTENT_TYPE-article {}
+
+
+/**********************************************************
+ *                    CCK Fields
+ **********************************************************/
+/* Wrapper for any CCK field. */
+.field {}
+
+/* Use "datetime" when creating new CCK date fields. */
+.field-type-datetime {}
+
+/* Filefield field. */
+.field-type-filefield {}
+
+/* Node reference field. */
+.field-type-nodereference {}
+
+/* User reference field. */
+.field-type-userreference {}
+
+/* Number fields. */
+.field-type-number-decimal {}
+.field-type-number-float   {}
+.field-type-number-integer {}
+
+/* Text field. */
+.field-type-text {}
+
+/**
+ * Specific field names.
+ */
+/* Underscores in field name are replaced with dashes. */
+.field-field-FIELDNAME {}
+
+
+/**********************************************************
+ *                     Comments
+ **********************************************************/
+/* Comment wrapper: wraps all comments and the comment form. */
+#comments {}
+#comments-title {}
+
+/* Wrapper class for each individual comment. */
+.comment {}
+
+/* Indentation */
+.comment .indented {}
+
+/* Comment Title (H3) */
+.comment-title {}
+.comment-title a:link,
+.comment-title a:visited {}
+.comment-title a:hover,
+.comment-title a:focus,
+.comment-title a:active {}
+
+/* Comment id (count with pound sign, see line 28 comment.tpl.php) 
+   and comment "new" notification. */
+.comment-id {}
+.comment-title .new {}
+
+
+/* User Picture */
+.comment .user-picture {}
+.comment .user-picture img {}
+
+/* Submitted */
+.comment .submitted {}
+.comment .submitted em {}
+.comment .submitted a {}
+.comment .submitted a:hover {}
+.comment .submitted .author {}
+.comment .submitted .time {}
+
+/* Links */
+.comment ul.links {}
+.comment ul.links li {}
+.comment ul.links li a {}
+
+/* Core comment link classes. */
+ul.links li.comment_reply a {}
+ul.links li.comment_edit a {}
+ul.links li.comment_delete a {}
+
+/* UL link first and last classes. */
+.comment ul.links li.first {}
+.comment ul.links li.last  {}
+
+/* Author */
+.comment-by-anonymous   {}
+.comment-by-article-author {}
+.comment-by-viewer      {}
+
+/* New */
+.comment-new {}
+
+/* Zebra */
+.comment.odd  {}
+.comment.even {}
+
+/* Status */
+.comment-unpublished {}
+
+/* Themes the "Unpublished" text. */
+.comment-unpublished .unpublished {}
+
+/* Comment box wrapper on a seperate page. */
+.section-comment .box {}
+.section-comment .box .box-title {}
+
+/* Comment box wrapper below content. */
+#comments .box {}
+#comments .box .box-title {}
+
+/* Sytle comments by article type. */
+.book-comments  {}
+.blog-comments  {}
+.forum-comments {}
+.page-comments  {}
+.poll-comments  {}
+.story-comments {}
+
+
+/**********************************************************
+ *                       Blocks
+ **********************************************************/
+/**
+ * Styles set for .block, .block-inner, block-title and 
+ * .block-content will be inherited by all blocks.
+ */
+.block {}
+.block-inner   {} /* Block inner div */
+.block-title   {} /* h2 block title */
+
+
+/**********************************************************
+ *                   Sidebar blocks
+ **********************************************************/
+/**
+ * You can target blocks in one or more regions and 
+ * style them differently. 
+ */
+ 
+/* Low specifity selector to style blocks in all regions. */
+.aside .block {}
+.aside .block h2 {}
+.aside .block-inner {}
+
+/* Low specifity selector to style blocks in both sidebars. */
+.sidebar .block {}
+.sidebar .block h2 {}
+.sidebar .block-inner {}
+
+/* High specifity selectors to style blocks in one sidebar - be careful,
+   these are powerful selectors! */
+#sidebar-first .block {}
+#sidebar-first .block h2 {}
+#sidebar-first .block-inner {}
+
+#sidebar-last .block {}
+#sidebar-last .block h2 {}
+#sidebar-last .block-inner {}
+
+
+/**********************************************************
+ *                  Region blocks
+ **********************************************************/
+/* High specifity selectors to style blocks in one region. */
+#leaderboard       .block {}
+#header-region     .block {}
+#menu-bar          .block {}
+#secondary-content .block {}
+#tertiary-content  .block {}
+#content-top       .block {}
+#content           .block {}
+#content-bottom    .block {}
+#footer-region     .block {}
+
+
+/**********************************************************
+ *                   Module blocks
+ **********************************************************/
+/**
+ * Module Block ID's 
+ * For contributed module blocks the pattern is the same,
+ * i.e. #block-[module]-[delta]
+ */
+#block-book-0       {} /* Book navigation block   */
+#block-blog-0       {} /* Recent Blog posts       */
+#block-comment-0    {} /* Recent Comments block   */
+#block-forum-0      {} /* Active Forum topics     */
+#block-forum-1      {} /* New Forum topics        */
+#block-locale-0     {} /* Language Switcher block */
+#block-node-0       {} /* Syndicate block         */
+#block-poll-0       {} /* Most recent poll        */
+#block-profile-0    {} /* Author information      */
+#block-search-0     {} /* Search form block       */
+#block-statistics-0 {} /* Popular content         */
+#block-system-0     {} /* Powered by Drupal       */
+#block-user-0       {} /* Login block             */
+#block-user-1       {} /* Navigation Menu block   */
+#block-user-2       {} /* Who's New block         */
+#block-user-3       {} /* Who's Online block      */
+
+/* Primary and Secondary links blocks */
+#block-menu-primary-links   {}
+#block-menu-secondary-links {}
+
+/* The class selector applies to all blocks of these types. */
+.block-user {} 
+.block-book {} 
+.block-aggregator {}
+
+
+/**********************************************************
+ *                 Search block form
+ **********************************************************/
+#search-block-form {}
+
+/* Wrapper DIVs. */
+#search-block-form > div {}
+#search-block-form .container-inline{}
+#edit-search-block-form-1-wrapper {}
+
+#search-block-form label {}
+#search-block-form input {}
+
+#search-block-form .form-submit {}
+#search-block-form .form-text {}
+
+/* Override forms.css focus style */
+#edit-search-block-form-1:hover,
+#edit-search-block-form-1:focus {}
+
+
+/**********************************************************
+ *                   Menu blocks
+ **********************************************************/
+/**
+ * Prefix these with the block id to style one menu only.
+ */
+ul.menu,
+ul.menu ul, 
+ul.menu ul ul, 
+ul.menu ul ul ul {}
+
+/* Menu li styles */
+ul.menu li {}
+
+ul.menu li.collapsed {}
+ul.menu li.expanded  {}
+ul.menu li.leaf      {}
+
+ul.menu li a:link,
+ul.menu li a:visited {}
+ul.menu li a:hover,
+ul.menu li a:focus,
+ul.menu li a:active   {}
+ul.menu li.active a  {}
+ul.menu li.active-trail a {}
+
+ul.menu li.first {}
+ul.menu li.last  {}
+
+
+/**********************************************************
+ *                   Block item-list
+ **********************************************************/
+.block .item-list ul {}
+.block .item-list ul li {}
+
+
+/**********************************************************
+ *                  Gpanel blocks
+ **********************************************************/
+/* Examples to get started. Add col specific selectors to style
+   blocks in different Gpanel columns, or element selectors to
+   style specific elements */
+   
+.two-col-2x50  .block {}
+.two-col-33-66 .block {}
+.two-col-66-33 .block {}
+
+.three-col-3x33     .block {}
+.three-col-25-25-50 .block {}
+.three-col-50-25-25 .block {}
+
+.four-col-4x25 .block {}
+.five-col-5x20 .block {}
+.six-col-6x16  .block {}
+
+
+/**********************************************************
+ *                  Gpanel Regions
+ **********************************************************/
+/**
+ * NOTE: If you are adding borders, padding or margin (anything
+ * that adds width) you should apply these to the INNER div or
+ * the contained element, such as a block or mini-panel.
+ */
+
+.gpanel {}
+.gpanel .region {}
+.gpanel .region .inner {}
+.gpanel .first  .inner {}
+.gpanel .last   .inner {}
+
+/* 2 column */
+.two-col-2x50 {}
+.two-col-2x50 .region {}
+.two-col-2x50 .region .inner {}
+.two-col-2x50 .col-1  {}
+.two-col-2x50 .col-2  {}
+.two-col-2x50 .col-1 .inner {}
+.two-col-2x50 .col-2 .inner {}
+
+.two-col-33-66 {}
+.two-col-33-66 .region {}
+.two-col-33-66 .region .inner {}
+.two-col-33-66 .col-1 {}
+.two-col-33-66 .col-2 {}
+.two-col-33-66 .col-1 .inner {}
+.two-col-33-66 .col-2 .inner {}
+
+.two-col-66-33 {}
+.two-col-66-33 .region {}
+.two-col-66-33 .region .inner {}
+.two-col-66-33 .col-1 {}
+.two-col-66-33 .col-2 {}
+.two-col-66-33 .col-1 .inner {}
+.two-col-66-33 .col-2 .inner {}
+
+/* 3 column */
+.three-col-3x33 {}
+.three-col-3x33 .region {}
+.three-col-3x33 .region .inner {}
+.three-col-3x33 .col-1 {}
+.three-col-3x33 .col-2 {}
+.three-col-3x33 .col-3 {}
+.three-col-3x33 .col-1 .inner {}
+.three-col-3x33 .col-2 .inner {}
+.three-col-3x33 .col-3 .inner {}
+
+.three-col-25-25-50 {}
+.three-col-25-25-50 .region {}
+.three-col-25-25-50 .region .inner {}
+.three-col-25-25-50 .col-1 {}
+.three-col-25-25-50 .col-2 {}
+.three-col-25-25-50 .col-3 {}
+.three-col-25-25-50 .col-1 .inner {}
+.three-col-25-25-50 .col-2 .inner {}
+.three-col-25-25-50 .col-3 .inner {}
+
+.three-col-50-25-25 {}
+.three-col-50-25-25 .region {}
+.three-col-50-25-25 .region .inner {}
+.three-col-50-25-25 .col-1 {}
+.three-col-50-25-25 .col-2 {}
+.three-col-50-25-25 .col-3 {}
+.three-col-50-25-25 .col-1 .inner {}
+.three-col-50-25-25 .col-2 .inner {}
+.three-col-50-25-25 .col-3 .inner {}
+
+/* 4 column */
+.four-col-4x25 {}
+.four-col-4x25 .region {}
+.four-col-4x25 .region .inner {}
+.four-col-4x25 .section-1 {}
+.four-col-4x25 .section-2 {}
+.four-col-4x25 .col-1 {}
+.four-col-4x25 .col-2 {}
+.four-col-4x25 .col-3 {}
+.four-col-4x25 .col-4 {}
+.four-col-4x25 .col-1 .inner {}
+.four-col-4x25 .col-2 .inner {}
+.four-col-4x25 .col-3 .inner {}
+.four-col-4x25 .col-4 .inner {}
+
+/* 5 column */
+.five-col-5x20 {}
+.five-col-5x20 .region {}
+.five-col-5x20 .region .inner {}
+.five-col-5x20 .col-1 {}
+.five-col-5x20 .col-2 {}
+.five-col-5x20 .col-3 {}
+.five-col-5x20 .col-4 {}
+.five-col-5x20 .col-5 {}
+.five-col-5x20 .col-1 .inner {}
+.five-col-5x20 .col-2 .inner {}
+.five-col-5x20 .col-3 .inner {}
+.five-col-5x20 .col-4 .inner {}
+.five-col-5x20 .col-5 .inner {}
+
+/* 6 column */
+.six-col-6x16 {}
+.six-col-6x16 .region {}
+.six-col-6x16 .region .inner {}
+.six-col-6x16 .col-1 {}
+.six-col-6x16 .col-2 {}
+.six-col-6x16 .col-3 {}
+.six-col-6x16 .col-4 {}
+.six-col-6x16 .col-5 {}
+.six-col-6x16 .col-6 {}
+.six-col-6x16 .col-1 .inner {}
+.six-col-6x16 .col-2 .inner {}
+.six-col-6x16 .col-3 .inner {}
+.six-col-6x16 .col-4 .inner {}
+.six-col-6x16 .col-5 .inner {}
+.six-col-6x16 .col-6 .inner {}
+
+
+/**********************************************************
+                      AT Panels
+    Classes for styling the built in Panels Layouts
+    You need the Panels 3 module installed to use the
+    built in panels and the Adaptivetheme base theme
+    must be enabled.
+ **********************************************************/
+.panel-col {}
+.panel-col .inside {}
+.panel-pane {}
+
+.sixcol-6x16 {}
+.fivecol-5x20 {}
+.fourcol-4x25 {}
+
+.threecol-at-25-25-50 {}
+.threecol-at-50-25-25 {}
+
+.twocol-at-33-66 {}
+.twocol-at-66-33 {}
+
+.threecol-at-stacked-inset {}
+.twocol-at-stacked-inset {}
+
+
+/**********************************************************
+ *                 AT Button Wrappers
+ **********************************************************/
+/**
+ * Adaptivetheme wraps input buttons with SPANs for
+ * easy theming.
+ */
+ span.button-wrapper {} /* Outer wrapper */
+ span.button {} /* Inner wrapper */
+
+
+/**********************************************************
+ *                       Tables
+ **********************************************************/
+/**
+ * The selector groupings are from Garland which offers a
+ * sensible starting point for styling Drupal tables.
+ */
+table {}
+
+caption, th, td {}
+caption, th {}
+
+table, td, th {}
+tbody, tfoot, thead, tr {}
+thead th {}
+td, th {}
+
+tr.even, tr.odd, tbody th {}
+tr.odd, tr.info {}
+tr.even {}
+
+tr.drag {}
+tr.drag-previous  {}
+
+tr.odd td.active  {}
+tr.even td.active {}
+
+td.region,
+td.module,
+td.container td.category {}
+
+tr:first-child td.region,
+tr:first-child td.module,
+tr:first-child td.container {}
+
+
+/**********************************************************
+ *                   Forum Tables
+ **********************************************************/
+#forum table {}
+#forum tr td.forum {}
+#forum tr td.forum .name {}
+#forum div.indent {}

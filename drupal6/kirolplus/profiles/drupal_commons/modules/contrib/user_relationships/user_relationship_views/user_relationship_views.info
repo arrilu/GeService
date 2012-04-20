@@ -1,0 +1,6 @@
+name = UR-Views
+description = "Integrates User Relationships with Views"
+dependencies[] = user_relationships_api
+dependencies[] = views
+core = 6.x
+package = "User Relationships"

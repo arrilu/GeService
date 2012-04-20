@@ -1,0 +1,55 @@
+<?php
+// $Id: nodereference_count.install,v 1.1.2.1 2010/04/12 01:41:14 gilgabar Exp $
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the nodereference_count module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function nodereference_count_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'nodereference_count');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function nodereference_count_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'nodereference_count');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function nodereference_count_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'nodereference_count');
+
+  // Weight nodereference_count to come after cck modules.
+  db_query("UPDATE {system} SET weight = 10 WHERE name = 'nodereference_count' AND type = 'module'");
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function nodereference_count_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'nodereference_count');
+}
+
+/**
+ * Weight nodereference_count to come after cck modules.
+ */
+function nodereference_count_update_6001() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'nodereference_count' AND type = 'module'");
+  return $ret;
+}

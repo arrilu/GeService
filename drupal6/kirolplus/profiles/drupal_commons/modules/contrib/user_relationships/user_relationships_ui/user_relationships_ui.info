@@ -1,0 +1,5 @@
+name = UR-UI
+description = "User Relationships UI. This enables basic UI functionality for User Relationships"
+package = "User Relationships"
+dependencies[] = user_relationships_api
+core = 6.x

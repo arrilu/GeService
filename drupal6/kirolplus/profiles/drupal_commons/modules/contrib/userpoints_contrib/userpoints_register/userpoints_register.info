@@ -1,0 +1,5 @@
+name = Userpoints Register
+description = Users earn points just for registering on the site
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x

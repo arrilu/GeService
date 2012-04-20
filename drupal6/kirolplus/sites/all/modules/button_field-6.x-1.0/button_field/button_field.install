@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * Notify CCK when this module is enabled, disabled, installed, and uninstalled
+ * so CCK can do any necessary preparation or cleanup.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function button_field_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'button_field');
+} // end function button_field_install()
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function button_field_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'button_field');
+} // end function button_field_uninstall()
+
+/**
+ * Implementation of hook_enable().
+ * 
+ * Notify content module when this module is enabled.
+ */
+function button_field_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'button_field');
+} // end function button_field_enable()
+
+/**
+ * Implementation of hook_disable().
+ * 
+ * Notify content module when this module is disabled.
+ */
+function button_field_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'button_field');
+} // end function button_field_disable()
+
+/**
+ * Implementation of hook_update_N().
+ * 
+ * CCK Fields won't appear for views unless they have a database column
+ * associated with them.
+ */
+function button_field_update_6100() {
+  $ret = array();
+  $columns['value'] = array('type' => 'varchar', 'length' => '255',
+    'not null' => TRUE, 'sortable' => FALSE, 'views' => TRUE);
+  $ret[] = update_sql('UPDATE {content_node_field} SET db_columns = ' .
+    '\'' . serialize($columns) . '\' WHERE type = \'button_field\'');
+  
+  return $ret;
+} // end function button_field_update_6100()
+
+/**
+ * Implementation of hook_update_N().
+ * 
+ * Need to create the columns associated with the last update
+ * 
+ * @see button_field_update_6100()
+ */
+function button_field_update_6101() {
+  $spec = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => FALSE,
+    'sortable' => FALSE,
+    'views' => TRUE,
+  ); // end $spec
+  
+  // start by getting all of the button fields
+  $ret = array();
+  $field_result = db_query('SELECT field_name FROM {content_node_field} ' .
+    'WHERE type = \'%s\'', 'button_field');
+  
+  // iterate over each of the fields
+  $field = db_fetch_array($field_result);
+  while ($field !== FALSE) {
+    // get the instances for this field
+    $instance_result =
+      db_query('SELECT type_name FROM {content_node_field_instance} ' .
+        'WHERE field_name = \'%s\'', $field['field_name']);
+    
+    // iterate over each of the instances, create the appropriate column
+    $column = $field['field_name'] . '_value';
+    $instance = db_fetch_array($instance_result);
+    while ($instance !== FALSE) {
+      // check to see if the column already exists
+      $table = 'content_type_' . $instance['type_name'];
+      if (db_column_exists($table, $column)) {
+        // we want to drop the column because we're changing its type
+        db_drop_field($ret, $table, $column);
+      } // end if the columnd already exist
+      
+      db_add_field($ret, $table, $column, $spec);
+      $instance = db_fetch_array($instance_result);
+    } // end for each instance of the field
+    
+    $field = db_fetch_array($field_result);
+  } // end for each field
+  
+  return $ret;
+} // end function button_field_update_6101()

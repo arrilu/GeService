@@ -1,0 +1,286 @@
+<?php
+
+/**
+ * @file
+ * merci_staff functions
+ */
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function merci_staff_menu() {
+  $items = array();
+
+  if (module_exists('civicrm')) {
+    $items['user/autocompletecivi'] = array(
+      'title' => 'User autocomplete',
+      'page callback' => 'merci_staff_autocomplete',
+      'access callback' => 'user_access',
+      'access arguments' => array('access user profiles'),
+      'type' => MENU_CALLBACK,
+    );
+  }
+
+  // Callback for AJAX adding of item selectors.
+  $items['mercistaff/updatename'] = array(
+    'page callback' => 'merci_staff_update_name',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function merci_staff_user_load($post = NULL) {
+  static $admin_user;
+  global $user;
+  if (empty($admin_user)) {
+    $admin_user = $user;
+  }
+  if (isset($post) and array_key_exists('override', $post) and !$post['override'] and ($newuser = user_load(array('name' => $post['name'])))) {
+    $user = $newuser;
+  }
+  else {
+    $user = $admin_user;
+  }
+}
+
+//function merci_staff_after_build($form, &$form_state) {
+function merci_staff_form_alter(&$form, $form_state, $form_id) {
+
+  if($form_id != 'merci_reservation_node_form') {
+    return;
+  }
+
+  if (isset($form_state['node'])) {
+    $node = $form_state['node'] + (array)$form['#node'];
+  } else {
+    $node = $form['#node'];
+  }
+  $node = (object) $node;
+  // Override the validation function so we can validate as the submitted user.
+  $form['#merci_staff_validated'][] = 'merci_node_validate';
+  $form['#validate'][] = 'merci_staff_node_validate';
+
+  foreach ($form['#merci_staff_validated'] as $function) {
+    $key = array_search($function, $form['#validate']);
+    if (is_numeric($key)) {
+      unset($form['#validate'][$key]);
+    }
+  }
+
+  // Recreate the groups and choices based on the submitted name.
+  merci_staff_user_load((array) $node);
+
+  if (module_exists('og')) {
+    og_form_add_og_audience($form, $form_state);
+  }
+
+  // Add the current choices to the form.
+  $reset = true;
+  foreach (element_children($form['choice_wrapper']['merci_reservation_items']) as $delta) {
+    if (is_numeric($delta)) {
+      continue;
+    }
+    $delta = substr($delta, 7);
+    $default = isset($node->merci_reservation_items["choice_" . $delta]['merci_item_nid']) ? $node->merci_reservation_items["choice_" . $delta]['merci_item_nid'] : '';
+    $form['choice_wrapper']['merci_reservation_items']["choice_" . $delta]['merci_item_nid'] =
+      _merci_choice_form($node, $form_state, $delta, $default, $reset);
+    $reset = NULL;
+  }
+  merci_staff_user_load();
+  return $form;
+}
+/**
+ * Implementation of hook_form_alter
+ **/
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function merci_staff_form_merci_reservation_node_form_alter(&$form, &$form_state) {
+  if (user_access('manage reservations')) {
+    //$form['#after_build'][] = 'merci_staff_after_build';
+
+    if (isset($form_state['node'])) {
+      $node = $form_state['node'] + (array) $form['#node'];
+    }
+    else {
+      $node = $form['#node'];
+    }
+    $node = (object) $node;
+    // Move the author field and set autocomplete and ahah handlers.
+    // We do this here and not in after_build because the ahah hash is handled before after_build is called.
+    $form['name'] = $form['author']['name'];
+    $form['name']['#title'] = 'Reserve for';
+    $form['name']['#weight'] = -99;
+    $form['name']['#default_value'] = $node->name ? $node->name : '';
+    if (module_exists('civicrm')) {
+      $form['name']['#autocomplete_path'] = 'user/autocompletecivi';
+    }
+    $form['name']['#ahah'] = array(
+      'path' => 'mercistaff/updatename',
+      //'wrapper' => 'edit-og-groups-wrapper',
+      'wrapper' => 'merci-staff-edit-form-wrapper',
+      'method' => 'replace',
+      'effect' => 'fade',
+    );
+
+    unset($form['author']['name']);
+
+    //create override checkbox
+    $form['override'] = array(
+      //'#type' => 'optionwidgets_onoff',
+      '#type' => 'checkbox',
+      '#title' => 'Override Validation',
+      '#default_value' => isset($node->override) ? $node->override : 0,
+      '#weight' => -97,
+      '#columns' => 0,
+    );
+    $form['#prefix'] = '<div id="merci-staff-edit-form-wrapper">';
+    $form['#suffix'] = '</div>';
+  }
+}
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function merci_staff_node_validate($form, &$form_state) {
+  merci_staff_user_load($form_state['values']);
+  foreach ($form['#merci_staff_validated'] as $function) {
+    $function($form, $form_state);
+  }
+  merci_staff_user_load();
+}
+/**
+ ** Menu callback; Retrieve a JSON object containing autocomplete suggestions for existing users.
+ **/
+function merci_staff_autocomplete($string = '') {
+  $matches = array();
+  if ($string) {
+
+    if ( ! civicrm_initialize( ) ) {
+      return;
+    }
+    $fields = content_fields();
+    $field = $fields[$field_name];
+    $matches = array();
+
+    $references = _merci_staff_potential_references($field, $string);
+    foreach ($references as $id => $row) {
+      // Add a class wrapper for a few required CSS overrides.
+      $matches["{$row['title']}"] = '<div class="reference-autocomplete">' . $row['rendered'] . '</div>';
+    }
+  }
+  drupal_json($matches);
+}
+
+/**
+ * Menu callback for AHAH additions.
+ */
+function merci_staff_update_name() {
+
+  list($form, $form_state) = merci_ahah_get_form();
+
+  $selected_portion = $form;
+
+  merci_ahah_output($selected_portion);
+}
+
+function _merci_staff_potential_references($field, $string = '', $exact_string = FALSE) {
+  static $results = array();
+
+  $references = _merci_staff_potential_references_standard($field, $string, $exact_string);
+
+  // Store the results.
+  $results[$field['field_name']][$string][$exact_string] = $references;
+
+  return $results[$field['field_name']][$string][$exact_string];
+}
+
+/**
+ * Helper function for _civicrm_cck_potential_references():
+ * referenceable nodes defined by content types.
+ */
+function _merci_staff_potential_references_standard( $field, $string = '', $exact_string = FALSE, $limit = '10' ) {
+  $args = $whereClause = $contactTypes = $contactSubTypes = array();
+
+  if ( ! civicrm_initialize( ) ) {
+    return;
+  }
+
+  require_once 'CRM/Contact/BAO/ContactType.php';
+  require_once 'CRM/Core/BAO/UFMatch.php';
+  $basicTypes = CRM_Contact_BAO_ContactType::basicTypePairs( );
+
+  foreach ( $basicTypes as $name => $label ) {
+    if ( is_array( $field[$name] ) ) {
+      $contactNames = array_filter( $field[$name] );
+      if ( !empty( $contactNames ) ) {
+        if ( in_array( $name, $contactNames ) ) {
+          $contactTypes[] = $name;
+        }
+        else {
+          $contactSubTypes = array_merge( $contactSubTypes, array_keys( $contactNames ) );
+        }
+      }
+    }
+  }
+
+  if ( !empty( $contactTypes ) ) {
+    $contactTypes  = implode( "','", $contactTypes );
+    $whereClause[] = "contact_type IN ( '{$contactTypes}' )";
+  }
+
+  if ( !empty( $contactSubTypes ) ) {
+    $contactSubTypes = implode( "','", $contactSubTypes );
+    $whereClause[]   = "contact_sub_type IN ( '{$contactSubTypes}' )";
+  }
+
+  $whereClause = empty( $whereClause ) ? '' : '(' . implode( ' OR ', $whereClause ) . ') AND';
+  $related_clause = "";
+
+  if (isset($string)) {
+    if ($exact_string) {
+      $string_clause = " AND display_name = %1";
+      $args[] = $string;
+    }
+    else {
+      $string_clause = " AND display_name LIKE %1";
+      $args[] = "%%" . $string . "%";
+    }
+  }
+
+  $q = "
+    SELECT civicrm_contact.id, display_name
+    FROM civicrm_contact
+    JOIN civicrm_uf_match ON civicrm_contact.id = civicrm_uf_match.contact_id
+    WHERE $whereClause
+    display_name IS NOT NULL
+    AND display_name NOT LIKE ''
+    AND display_name NOT LIKE '<Last>%%'
+    AND display_name NOT LIKE '%@%%'
+    AND display_name NOT LIKE '--%%'
+    AND display_name NOT LIKE '- -%%'
+    AND display_name NOT LIKE ',%%'
+    AND display_name NOT LIKE '..%%'
+    " . $string_clause . " LIMIT $limit";
+  $params = array(1 => array($args[0], "String"));
+  $dao = CRM_Core_DAO::executeQuery( $q, $params );
+
+  $references = array();
+  while ($dao->fetch()) {
+    $uid = CRM_Core_BAO_UFMatch::getUFId($dao->id);
+    $username = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $uid));
+    $references[$dao->id] = array(
+      'title' => $username,
+      'rendered' => $dao->display_name,
+    );
+  }
+
+  return $references;
+}
+

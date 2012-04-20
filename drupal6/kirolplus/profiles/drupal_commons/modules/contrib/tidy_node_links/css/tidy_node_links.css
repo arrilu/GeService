@@ -1,0 +1,128 @@
+/*Node Links Style*/
+/*Temporary until a better fix is found. This code should be in its own css but included after theme css*/
+
+ .node .inner .links .comment_clear_style{
+    float: left;
+    background-color: #6699CC;
+    border-color: #6699CC;
+    border-style: solid;
+    border-width: 0 1px 1px 0;
+    padding: 7px 17px;
+}
+.node .inner .links .comment_clear_style a{
+    color: white;
+    font-family: "Helvetica Neue",Helvetica,Arial,Sans-serif;
+    font-size: 12px;
+}
+
+.node .inner .links .subscription_clear_style{
+    float: right;
+    width:400px;
+    border: 0;
+    border-style: none;
+}
+.node .inner .links .styled-links-separator {
+  clear: both;
+}
+
+
+
+ /* all ul */
+.node .inner .links > .subscription_clear_style ul {
+    list-style:none;
+    background-color:#C2C2C2; /*used as border color*/
+    border-color:#C2C2C2;
+    margin:0px;
+    padding:0px 1px 1px 0px;
+    border-width:0px;
+    border-style:solid;
+}
+
+/* primary ul */
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown{ 
+    display:block;
+    float: left;
+}
+
+/* secondary ul*/
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown ul{ 
+    display:none;
+    position: absolute;left:-1px;top:98%;
+}
+
+/*all li */
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown li{ 
+    float:left;
+    display:block;
+    margin:1px 0px 0px 1px;
+    font-size:0px;
+    
+    padding-left: 0px; /* remove padding set by theme */
+    background: none; /* remove background set by theme */
+    border-left: 0;
+    border-right: 0;
+    
+}
+
+/* secondary li*/
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown ul li { 
+    float:none;
+}
+
+/* all a*/
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown a{ 
+    display:block;
+    background-color:#DDE9F4;
+    border-color:#6699CC;
+    color: #6699CC;
+    border-width:0px;
+    border-style:solid;
+    padding:8px 8px 8px 17px;
+    font:normal 12px "Helvetica Neue",Helvetica,Arial,Sans-serif;
+
+    cursor:pointer;
+    
+}
+/* selection highlight*/
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown li:hover>a{
+    background-color:#6699CC;
+    border-color:#6699CC;
+    border-style:solid;
+    color: white;
+    font:normal 12px "Helvetica Neue",Helvetica,Arial,Sans-serif;
+
+}
+
+
+/* all span*/
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown span{
+    overflow:hidden;
+    display:block;
+    background-image:url(../images/dropdown_arrow.png);
+    background-position:right center;
+    padding-right:20px;
+    background-repeat: no-repeat;
+}
+
+/* li:hover */
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown li:hover>ul{
+    display:block
+}
+.node .inner .links > .subscription_clear_style ul.node_link_style-dropdown li:hover{ 
+    position:relative; /* position just below title */
+    z-index:10000;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

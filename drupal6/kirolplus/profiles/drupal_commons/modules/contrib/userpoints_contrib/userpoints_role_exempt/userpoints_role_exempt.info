@@ -1,0 +1,6 @@
+; $Id$
+name = Role exempt
+description = Exempts certain roles from earning userpoints. Useful for admin and moderators.
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x

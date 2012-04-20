@@ -1,0 +1,6 @@
+ ; $Id$
+name = Userpoints Retroactive
+description = Calculate userpoints for nodes and comments created so far.
+package = Userpoints
+core = 6.x
+dependencies[] = userpoints

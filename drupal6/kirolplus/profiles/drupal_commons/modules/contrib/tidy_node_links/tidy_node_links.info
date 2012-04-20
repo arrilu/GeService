@@ -1,0 +1,3 @@
+name = Tidy node links
+description = Cleans up the links typically presented at the bottom of a node by putting all links other than the "Add new comment" control in a dropdown control. 
+core = 6.x

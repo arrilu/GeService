@@ -1,0 +1,124 @@
+<?php
+// $Id: html5_tools.module,v 1.6.2.1 2011/01/21 04:44:30 ericduran Exp $
+
+/**
+ * Implemenation of hook_help().
+ */
+function html5_tools_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#html5_tools':
+      $output = '';
+      return $output;
+  }
+}
+
+/**
+ * Implementaion of hook_theme().
+ */
+function html5_tools_theme() {
+  return array(
+    'html5_tag' => array(
+      'arguments' => array('data' => array()),
+    ),
+    'node_submitted' => array(
+      'arguments' => array('node'),
+      'function' => 'theme_html5_tools_node_submitted',
+    ),
+  );
+}
+
+/**
+ * Wrapper function for drupal_set_html_head().
+ * Modules should use this function to add HTML tags to the <head>.
+ * For example, meta tags and link tags.
+ * Note: Generally for css & js you should use drupal_add_css and drupal_add_js.
+ *
+ * @param $data
+ *   A structured array as expected by drupal_render().
+ *
+ * @return
+ *   The rendered HTML for the header variable.
+ */
+function html5_tools_set_html_head($data = NULL) {
+  $element = !is_null($data) ? theme('html5_tag', $data) : NULL;
+  $stored_head = drupal_set_html_head($element);
+
+  return $stored_head;
+}
+
+/**
+ * Wrapper function for drupal_get_html_head().
+ *
+ * @return
+ *   The rendered HTML for the header variable.
+ */
+function html5_tools_get_html_head() {
+  $element = array(
+    '#type'       => 'meta',
+    '#attributes' => array(
+      'charset' => 'utf-8',
+    ),
+  );
+  $stored_head = html5_tools_set_html_head($element);
+
+  return $stored_head;
+}
+
+/**
+ * Theme function for rendering HTML tags.
+ */
+function theme_html5_tag($data) {
+  $output  = '<' . $data['#type'];
+  $output .= ' ' . drupal_attributes($data['#attributes']);
+  if (isset($data['#content']) && !empty($data['#content'])) {
+    $output .= '>' . "\n\r";
+    $output .= $data['#content'];
+    $output .= '</' . $data['#type'] . '>';
+  }
+  else {
+    $output .= ' />';
+  }
+
+  return $output;
+}
+
+/**
+ * Theme function for rendering submitted date.
+ */
+function theme_html5_tools_node_submitted($node) {
+  return t('<time pubdate datetime="@pubtime">Submitted by !username on @datetime</time>',
+    array(
+      '@pubtime' => date('c', $node->created),
+      '!username' => theme('username', $node),
+      '@datetime' => format_date($node->created),
+    ));
+}
+
+/**
+ * Preprocess function to clean up drupal's default variables
+ */
+function html5_tools_preprocess_page(&$vars) {
+    $vars['styles'] = html5_tools_clean($vars['styles']);
+    $vars['scripts'] = html5_tools_clean($vars['scripts']);
+    $vars['head'] = html5_tools_clean($vars['head']);
+}
+
+/**
+ * Clean markup by removing obsolete attributes.
+ *
+ * @param $data
+ *   The markup that needs to be scrubbed.
+ *
+ * @param $remove
+ *   (Optional) Array of strings to be cleaned from the markup in data in
+ *   addition to the defaults defined within the function.
+ */
+function html5_tools_clean($data, $remove = array()) {
+  $obsolete = array_merge(array(
+    '/ type="text\/css"/',
+    '/ type="text\/javascript"/',
+    '/<meta http-equiv=\"Content-Type\"[^>]*>/',
+  ), $remove);
+
+  return preg_replace($obsolete, '', $data);
+} 

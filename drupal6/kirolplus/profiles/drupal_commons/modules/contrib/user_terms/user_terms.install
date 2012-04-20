@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ *   Provides the (un)installation logic for the User Terms module.
+ */
+
+
+/**
+ * Implementation of hook_schema(). Defines the database table used by the
+ * User Terms module.
+ *
+ * @return the schema definition array.
+ */
+function user_terms_schema() {
+  $schema = array();
+
+  $schema['term_user'] = array(
+    'description' => 'Stores the relationship of terms to users.',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Primary Key: The {users}.uid of the user.',
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Primary Key: The {term_data}.tid of a term assigned to the user.',
+      ),
+    ),
+    'indexes' => array(
+      'tid' => array('tid'),
+      'uid' => array('uid'),
+    ),
+    'primary key' => array('tid', 'uid'),
+  );
+
+  return $schema;
+}
+
+
+/**
+ * Implementation of hook_install().
+ */
+function user_terms_install() {
+  drupal_install_schema('user_terms');
+}
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function user_terms_uninstall() {
+  drupal_uninstall_schema('user_terms');
+
+  variable_del('user_terms_vocabs');
+  variable_del('user_terms_group_terms');
+  variable_del('user_terms_group_title');
+  variable_del('user_terms_vocabs_register');
+  variable_del('user_terms_vocabs_path');
+}
+
+
+function user_terms_update_6001() {
+  // Convert old single vocabulary variable to multiple vocab variable.
+  $new_vocabs = array();
+  $old_vocab = variable_get('user_terms_vocabulary', '');
+  if ($old_vocab) {
+    $new_vocabs = array($old_vocab => $old_vocab);
+  }
+  variable_set('user_terms_vocabs', $new_vocabs);
+  variable_del('user_terms_vocabulary');
+
+  variable_set('user_terms_group_title', variable_get('user_terms_title', ''));
+  variable_del('user_terms_title');
+
+  variable_del('user_terms_description');
+
+  return array();
+}
+
+/**
+ * Convert variables to allow vocabularies in different Profile categories.
+ */
+function user_terms_update_6002() {
+  $vocabs = variable_get('user_terms_vocabs', array());
+
+  // Set all vocabularies on the registration form.
+  variable_set('user_terms_vocabs_register', $vocabs);
+
+  // Set all vocabularies to the current category setting.
+  $profile_path = variable_get('user_terms_profile_path', 'account');
+  foreach ($vocabs as $vid) {
+    $vocabs_path[$vid] = $profile_path;
+  }
+  variable_set('user_terms_vocabs_path', $vocabs_path);
+
+  // This is replaced by 'user_terms_vocabs_path'.
+  variable_del('user_terms_profile_path');
+
+  return array();
+}

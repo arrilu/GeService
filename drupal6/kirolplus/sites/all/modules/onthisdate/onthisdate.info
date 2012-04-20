@@ -1,0 +1,3 @@
+name = Mont
+description = A block module that lists links to content created one week ago.
+core = 6.x

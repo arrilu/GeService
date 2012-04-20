@@ -1,0 +1,16 @@
+name = MERCI UI 
+package = MERCI
+description = "Adds tabs to user, resources, and buckets that are compatible with om_navigation."
+
+core = 6.x
+
+dependencies[] = merci
+dependencies[] = views_bulk_operations
+
+
+; Information added by drupal.org packaging script on 2012-02-13
+version = "6.x-2.0-rc2"
+core = "6.x"
+project = "merci"
+datestamp = "1329169542"
+

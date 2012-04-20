@@ -1,0 +1,14 @@
+name = Tagging full-vocabular suggestion
+description = This tagging module exposes all vocabulary terms of a the vocabulary as suggestions (no matter what is in the content).
+package = "Taxonomy"
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = tagging
+
+
+; Information added by drupal.org packaging script on 2011-12-01
+version = "6.x-3.2"
+core = "6.x"
+project = "tagging"
+datestamp = "1322729152"
+

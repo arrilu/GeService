@@ -1,0 +1,4 @@
+name = UR-API
+description = "API for User Relationships. This will only provide the programmer interface."
+package = "User Relationships"
+core = 6.x

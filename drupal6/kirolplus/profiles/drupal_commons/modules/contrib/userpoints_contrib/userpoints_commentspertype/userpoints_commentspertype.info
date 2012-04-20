@@ -1,0 +1,6 @@
+; $Id$
+name = Userpoints Comments per Type
+description = Users get points for comments. Comments for different node types can be different.
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x

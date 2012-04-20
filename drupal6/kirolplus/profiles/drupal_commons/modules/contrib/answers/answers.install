@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * @file
+ * Install file of the answers module
+ */
+
+ module_load_include('inc', 'content', 'includes/content.crud');
+
+/**
+ * Implements hook_uninstall().
+ */
+function answers_uninstall() {
+  variable_del('answers_answer_notification_subject');
+  variable_del('answers_answer_notification_body');
+  variable_del('answers_new_answer_notice_allow_p');
+}
+
+/**
+ * Implements hook_requirements().
+ *
+ * Checks that new depedency nodereference count is installed.
+ */
+function answers_requirements($phase) {
+  $requirements = array();
+
+  if (($phase == 'runtime') && (!module_exists('nodereference_count'))) {
+    $t = get_t();
+    $requirements['answers_nodereference_count'] = array(
+      'title' => $t('Answers Module Dependencies'),
+      'value' => $t('Module not found: The Answers module requires that the NodeReference Count module be installed'),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Create a 'field_question_locked_p' field
+ */
+function answers_update_6100() {
+  $field = _answers_field_question_locked_p();
+  content_field_instance_create($field);
+  return array();
+}
+
+function _answers_field_question_locked_p() {
+  $array = array(
+    'field_name' => 'field_question_locked_p',
+    'type_name' => 'question',
+    'display_settings' => array(
+      'weight' => '6',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      4 => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      2 => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      3 => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_integer',
+    'required' => '0',
+    'multiple' => '0',
+    'db_storage' => '1',
+    'module' => 'number',
+    'active' => '1',
+    'locked' => '0',
+    'columns' => array(
+    'value' =>
+      array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'sortable' => TRUE,
+      ),
+    ),
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '0 | No
+1 | Yes',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'default_value' => array(
+        0 => array(
+          'value' => '',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Question Locked',
+      'weight' => '6',
+      'description' => '',
+      'type' => 'optionwidgets_buttons',
+      'module' => 'optionwidgets',
+    ),
+  );
+  return $array;
+}

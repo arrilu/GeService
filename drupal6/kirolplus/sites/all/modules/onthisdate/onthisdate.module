@@ -1,0 +1,83 @@
+<?php
+/**
+ * Display help and module information
+ * @param path which path of the site we're displaying help
+ * @param arg array that holds the current path as would be returned from arg() function
+ * @return help text for the path
+ */
+function onthisdate_help($path, $arg) {
+  $output = '';  //declare your output variable
+  switch ($path) {
+    case "admin/help#onthisdate":
+      $output = '<p>'.  t("Displays links to nodes created on this date") .'</p>';
+      break;
+  }
+  return $output;
+} // function onthisdate_help
+
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the onthisdate module
+*/
+function onthisdate_perm() {
+  return array('access onthisdate content');
+} // function onthisdate_perm()
+
+
+
+function onthisdate_block($op='list', $delta=0) {
+  // set up the block  
+  $block = array();
+
+  if ($op == "list") {
+    // Generate listing of blocks from this module, for the admin/block page
+
+    $block[0]["info"] = t('On This Date');
+  } 
+  else if ($op == 'view') {
+
+    // Generate our block content
+
+    // content variable that will be returned for display
+    $block_content = '';
+
+    // Get today's date
+    $today = getdate();
+
+    // calculate midnight one week ago
+    $start_time = mktime(0, 0, 0,$today['mon'],
+                               ($today['mday'] - 7), $today['year']);
+
+    // we want items that occur only on the day in question, so 
+    //calculate 1 day
+    $end_time = $start_time + 86400;
+    // 60 * 60 * 24 = 86400 seconds in a day
+
+    $query = "SELECT nid, title, created FROM " .
+             "{node} WHERE created >= '%d' " .
+             " AND created <= '%d'";
+
+    $query_result =  db_query($query, $start_time, $end_time);
+    while ($links = db_fetch_object($query_result)) {
+      $block_content .= l($links->title, 'node/'.$links->nid) . '<br />';
+    }
+
+    // Fill in the subject of our block which is the same whether or not
+    // the block has any real content
+    $block['subject'] = 'On This Date';
+
+    // check to see if there was any content before returning
+    //  the block view
+    if ($block_content == '') {   
+       // no content from a week ago
+       $block['content'] = 'Sorry No Content';
+    }
+    else {
+      // set up the block
+      $block['content'] = $block_content;
+    }
+  }
+
+  return $block;
+}  // end onthisdate_block

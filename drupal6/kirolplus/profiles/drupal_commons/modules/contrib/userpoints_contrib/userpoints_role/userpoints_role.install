@@ -1,0 +1,8 @@
+<?php
+
+// $Id$
+
+function userpoints_role_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'userpoints_role%%'");
+  db_query("DELETE FROM {variable} WHERE name LIKE 'userpoints_email_role%%'");
+}

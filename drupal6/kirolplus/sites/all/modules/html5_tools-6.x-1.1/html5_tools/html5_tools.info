@@ -1,0 +1,13 @@
+; $Id: html5_tools.info,v 1.4 2010/09/27 23:47:40 ericduran Exp $
+name = HTML5 Tools
+description = Provides a set of tools to allow sites to be built using HTML5.
+core = 6.x
+php = 5
+package = 'Markup'
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.1"
+core = "6.x"
+project = "html5_tools"
+datestamp = "1295585494"
+

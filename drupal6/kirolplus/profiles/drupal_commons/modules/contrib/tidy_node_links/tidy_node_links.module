@@ -1,0 +1,59 @@
+<?php
+
+include_once ('api/tidy_node_links.api.inc');
+include_once ('api/tidy_node_links_default_impl.inc');
+include_once ('api/tidy_node_links_tf_impl.inc');
+include_once ('tidy_node_links.theme.inc');
+
+/**
+ * Implements hook_theme().
+ */
+function tidy_node_links_theme() {
+  return array(
+    'tidy_node_links' => array(
+      'arguments' => array('name' => NULL, 'links' => array(), 'node' => NULL),
+    ),
+    'tidy_node_links_element' => array(
+      'arguments' => array('mapping_name' => NULL, 'mapping_entry' => array(), 'ref' => NULL),
+    ),
+    'tidy_node_links_list_start' => array(
+      'arguments' => array('list_name' => NULL, 'mapping_entry' => array(), 'ref' => NULL),
+    ),
+    'tidy_node_links_list_end' => array(
+      'arguments' => array(),
+    ),
+    'tidy_node_links_list_item' => array(
+      'arguments' => array('link_title' => NULL, 'link' => NULL, 'first' => FALSE, 'last' => FALSE, 'ref' => NULL),
+    ),
+  );
+}
+
+function theme_tidy_node_links($links = array(), $node) {
+  $module_path = drupal_get_path('module', 'tidy_node_links');
+  drupal_add_css($module_path . '/css/tidy_node_links.css');
+
+  //by default tidy_node_links_mapping_default is used
+  //choose this if you want OO version: $config_name=variable_get('tidy_node_links_mapping_class', 'TidyNodeLinksMappingDefault');
+  $config_name = variable_get('tidy_node_links_mapping_class', 'TidyNodeLinksMappingWithThemeFunctions');
+  $toolkit = new TidyNodeLinksToolkit();
+  $toolkit->set_mapping_class($config_name);
+  
+  // hook_tidy_node_links_toolkit_alter
+  drupal_alter('tidy_node_links_toolkit',$toolkit,$node);
+
+  $output = $toolkit->display($links);
+
+  return $output;
+}
+
+/**
+ * Process variables for node.tpl.php.
+ *
+ * @see template_preprocess_node()
+ */
+function tidy_node_links_preprocess_node(&$variables) {
+  if (isset($variables['node']->links)) {
+    $variables['links'] = theme('tidy_node_links', $variables['node']->links, $variables['node']);
+  }
+}
+

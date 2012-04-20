@@ -1,0 +1,25 @@
+name = MERCI
+package = MERCI
+description = "Managed Equipment Reservation Checkout and Inventory"
+
+core = 6.x
+
+dependencies[] = content
+dependencies[] = number 
+dependencies[] = date
+dependencies[] = date_api
+dependencies[] = jquery_ui 
+dependencies[] = date_popup
+dependencies[] = date_timezone
+dependencies[] = views
+dependencies[] = taxonomy
+dependencies[] = optionwidgets 
+
+
+
+; Information added by drupal.org packaging script on 2012-02-13
+version = "6.x-2.0-rc2"
+core = "6.x"
+project = "merci"
+datestamp = "1329169542"
+

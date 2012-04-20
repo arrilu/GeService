@@ -1,0 +1,6 @@
+; $Id$
+name = User to User Points
+description = Users are able to send points to other users.
+package = Userpoints
+dependencies[] = userpoints
+core = 6.x

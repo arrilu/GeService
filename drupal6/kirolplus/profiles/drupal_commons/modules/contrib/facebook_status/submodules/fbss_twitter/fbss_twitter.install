@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ *   (Un)installs the Facebook-style Statuses Twitter module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function fbss_twitter_install() {
+  if (!module_exists('oauth') && !module_exists('oauth_common')) {
+    $t = get_t();
+    drupal_set_message($t('You must have the OAuth module (preferably 3.x) installed in order to post status updates to Twitter.', 'error'));
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function fbss_twitter_uninstall() {
+  variable_del('fbss_twitter_select_account');
+  variable_del('fbss_twitter_default');
+}

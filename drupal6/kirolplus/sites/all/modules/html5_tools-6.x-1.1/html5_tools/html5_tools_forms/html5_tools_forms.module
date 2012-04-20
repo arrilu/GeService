@@ -1,0 +1,107 @@
+<?php
+// $Id: html5_tools_forms.module,v 1.6.2.1 2011/01/21 04:44:30 ericduran Exp $
+
+/**
+ * Implemenation of hook_help().
+ */
+function html5_tools_forms_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#html5_tools_forms':
+      $output = '';
+      return $output;
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_system_site_information_settings_alter(&$form, &$form_state) {
+  // Modify site configuration email textfield to a email field.
+  if ($form['site_mail']['#type'] == 'textfield') {
+    $form['site_mail']['#type'] = 'emailfield';
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_search_block_form_alter(&$form, &$form_state) {
+  // Modify search block textfield to a searchfield.
+  if ($form['search_block_form']['#type'] == 'textfield') {
+    $form['search_block_form']['#type'] = 'searchfield';
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_search_theme_form_alter(&$form, &$form_state) {
+  // Modify search form to a search field.
+  if ($form['search_theme_form']['#type'] == 'textfield') {
+    $form['search_theme_form']['#type'] = 'searchfield';
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_search_form_alter(&$form, &$form_state) {
+  // Modify search form to a search field.
+  if ($form['basic']['inline']['keys']['#type'] == 'textfield') {
+    $form['basic']['inline']['keys']['#type'] = 'searchfield';
+  }  
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_user_register_alter(&$form, &$form_state) {
+  // Modify the user registration field to use an email field.
+  if ($form['mail']['#type'] == 'textfield') {
+    $form['mail']['#type'] = 'emailfield';
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_user_profile_form_alter(&$form, &$form_state) {
+  // Modify the user profile form to use an email field.
+  if ($form['account']['mail']['#type'] == 'textfield') {
+    $form['account']['mail']['#type'] = 'emailfield';
+  }
+}
+
+/**
+* Implementation of hook_form_FORM_ID_alter().
+*/
+function html5_tools_forms_form_comment_form_alter(&$form, &$form_state) {
+  // Modify the comment form to use an email field.
+  if ($form['mail']['#type'] == 'textfield') {
+    $form['mail']['#type'] = 'emailfield';
+  }
+}
+
+/**
+ * Add our own process function to cck number elements
+ */
+function html5_tools_forms_elements() {
+  return array(
+    'number' => array(
+      '#process' => array('html5_tools_forms_number_process'),
+    ),
+  );
+}
+
+/**
+ * Modify cck number field from a textfield to a numberfield
+ * 
+ * !TODO: Add min and max implementation
+ */
+function html5_tools_forms_number_process($element, $edit, $form_state, $form) {
+  if ($element['value']['#type'] == 'textfield') {
+    $element['value']['#type'] = 'numberfield';
+  }
+
+  return $element;
+}
