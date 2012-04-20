@@ -1,0 +1,48 @@
+<?php
+function kirolplus_validate_dni($variables){
+  //a flag, TRUE means pass, FALSE means fail.
+  $flag = TRUE;
+  
+	//maybe what you need is the current value
+  $value = $variables['value'];
+	
+	//Here is the validation logic
+	$flag  = valida_dni($value);
+	
+	//return TRUE or FALSE
+	return $flag;
+}
+
+function valida_dni($dni) // retorna FALSE si hay errror o TRUE si no hay error
+{
+   $cadena = trim($dni);
+   $cadena = str_replace("-","",$cadena);
+   $cadena = str_ireplace(" ","",$cadena);
+
+
+   if (strlen($cadena) != 9) return false;      
+  
+    //Posibles valores para la letra final 
+    $valoresLetra = array(
+        0 => 'T', 1 => 'R', 2 => 'W', 3 => 'A', 4 => 'G', 5 => 'M',
+        6 => 'Y', 7 => 'F', 8 => 'P', 9 => 'D', 10 => 'X', 11 => 'B',
+        12 => 'N', 13 => 'J', 14 => 'Z', 15 => 'S', 16 => 'Q', 17 => 'V',
+        18 => 'L', 19 => 'H', 20 => 'C', 21 => 'K',22 => 'E'
+    );
+	
+    //Comprobar si es un DNI
+    if (preg_match('/^[0-9]{8}[A-Z]$/i', $cadena))
+    {	
+		
+        //Comprobar letra
+        if (strtoupper($cadena[strlen($cadena) - 1]) !=
+            $valoresLetra[((int) substr($cadena, 0, strlen($cadena) - 1)) % 23])
+			
+            return false;
+ 
+        //Todo fue bien 
+        return true; 
+    }
+}
+
+?>

@@ -1,0 +1,4 @@
+name = Kirolplus validacion
+description = Validacion del form de registro kirolplus
+core = 7.x
+
