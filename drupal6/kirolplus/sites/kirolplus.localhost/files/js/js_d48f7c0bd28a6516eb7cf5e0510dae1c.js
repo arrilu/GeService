@@ -307,7 +307,7 @@ Drupal.theme.prototype = {
   }
 };
 ;
-Drupal.locale = { 'pluralFormula': function($n) { return Number(($n!=1)); }, 'strings': { "Unspecified error": "Error no especificado", "Internal server error. Please see server or PHP logs for error information.": "Error interno del servidor. Por favor, consulte los registros de información de error del servidor o PHP.", "Edit": "Editar", "Not published": "No publicado", "Read more": "Leer más", "1 attachment": "1 adjunto", "@count attachments": "@count adjuntos", "Anonymous": "Anónimo", "Select all rows in this table": "Seleccionar todas las filas de esta tabla", "Deselect all rows in this table": "Quitar la selección a todas las filas de esta tabla", "Drag to re-order": "Arrastre para reordenar", "Changes made in this table will not be saved until the form is submitted.": "Los cambios realizados en esta tabla no se guardarán hasta que se envíe el formulario", "The changes to these blocks will not be saved until the \x3cem\x3eSave blocks\x3c/em\x3e button is clicked.": "Los cambios sobre estos bloques no se guardarán hasta que no pulse el botón \x3cem\x3eGuardar bloques\x3c/em\x3e.", "jQuery UI Tabs: Mismatching fragment identifier.": "jQuery UI Tabs: Identificador de fragmento no coincidente.", "jQuery UI Tabs: Not enough arguments to add tab.": "jQuery UI Tabs: No hay argumentos para añadir solapa." } };;
+Drupal.locale = { 'pluralFormula': function($n) { return Number(($n!=1)); }, 'strings': { "Unspecified error": "Error no especificado", "Internal server error. Please see server or PHP logs for error information.": "Error interno del servidor. Por favor, consulte los registros de información de error del servidor o PHP.", "Edit": "Editar", "Not published": "No publicado", "Read more": "Leer más", "1 attachment": "1 adjunto", "@count attachments": "@count adjuntos", "Anonymous": "Anónimo", "Select all rows in this table": "Seleccionar todas las filas de esta tabla", "Deselect all rows in this table": "Quitar la selección a todas las filas de esta tabla", "Drag to re-order": "Arrastre para reordenar", "Changes made in this table will not be saved until the form is submitted.": "Los cambios realizados en esta tabla no se guardarán hasta que se envíe el formulario", "Your server has been successfully tested to support this feature.": "Su servidor pasó con éxito la prueba sobre soporte de esta característica.", "Your system configuration does not currently support this feature. The \x3ca href=\"http://drupal.org/node/15365\"\x3ehandbook page on Clean URLs\x3c/a\x3e has additional troubleshooting information.": "La configuración de su sistema no admite actualmente esta característica. La \x3ca href=\"http://drupal.org/node/15365\"\x3epágina del manual sobre URL limpias\x3c/a\x3e tiene más información sobre posibles problemas.", "Testing clean URLs...": "Probando URL limpias...", "The changes to these blocks will not be saved until the \x3cem\x3eSave blocks\x3c/em\x3e button is clicked.": "Los cambios sobre estos bloques no se guardarán hasta que no pulse el botón \x3cem\x3eGuardar bloques\x3c/em\x3e.", "jQuery UI Tabs: Mismatching fragment identifier.": "jQuery UI Tabs: Identificador de fragmento no coincidente.", "jQuery UI Tabs: Not enough arguments to add tab.": "jQuery UI Tabs: No hay argumentos para añadir solapa." } };;
 // $Id$
 
 (function ($) {
@@ -1061,6 +1061,25 @@ function viewsSlideshowSingleFrameIsVisible(elem, type, amountVisible) {
 }
 
 ;
+// $Id: poormanscron.js,v 1.1.2.3 2010/01/17 00:27:52 davereid Exp $
+(function ($) {
+
+/**
+ * Checks to see if the cron should be automatically run.
+ */
+Drupal.behaviors.cronCheck = function(context) {
+  if (Drupal.settings.cron.runNext || false) {
+    $('body:not(.cron-check-processed)', context).addClass('cron-check-processed').each(function() {
+      // Only execute the cron check if its the right time.
+      if (Math.round(new Date().getTime() / 1000.0) >= Drupal.settings.cron.runNext) {
+        $.get(Drupal.settings.cron.basePath + '/run-cron-check');
+      }
+    });
+  }
+};
+
+})(jQuery);
+;
 /**
  * Cookie plugin
  *
@@ -1575,200 +1594,6 @@ Drupal.behaviors.adminToolbarMenu = function(context) {
         });
       });
   }
-};
-;
-
-Drupal.tableHeaderDoScroll = function() {
-  if (typeof(Drupal.tableHeaderOnScroll)=='function') {
-    Drupal.tableHeaderOnScroll();
-  }
-};
-
-Drupal.behaviors.tableHeader = function (context) {
-  // This breaks in anything less than IE 7. Prevent it from running.
-  if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) < 7) {
-    return;
-  }
-
-  // Keep track of all cloned table headers.
-  var headers = [];
-
-  $('table.sticky-enabled thead:not(.tableHeader-processed)', context).each(function () {
-    // Clone thead so it inherits original jQuery properties.
-    var headerClone = $(this).clone(true).insertBefore(this.parentNode).wrap('<table class="sticky-header"></table>').parent().css({
-      position: 'fixed',
-      top: '0px'
-    });
-
-    headerClone = $(headerClone)[0];
-    headers.push(headerClone);
-
-    // Store parent table.
-    var table = $(this).parent('table')[0];
-    headerClone.table = table;
-    // Finish initialzing header positioning.
-    tracker(headerClone);
-
-    $(table).addClass('sticky-table');
-    $(this).addClass('tableHeader-processed');
-  });
-
-  // Define the anchor holding var.
-  var prevAnchor = '';
-
-  // Track positioning and visibility.
-  function tracker(e) {
-    // Save positioning data.
-    var viewHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-    if (e.viewHeight != viewHeight) {
-      e.viewHeight = viewHeight;
-      e.vPosition = $(e.table).offset().top - 4;
-      e.hPosition = $(e.table).offset().left;
-      e.vLength = e.table.clientHeight - 100;
-      // Resize header and its cell widths.
-      var parentCell = $('th', e.table);
-      $('th', e).each(function(index) {
-        var cellWidth = parentCell.eq(index).css('width');
-        // Exception for IE7.
-        if (cellWidth == 'auto') {
-          cellWidth = parentCell.get(index).clientWidth +'px';
-        }
-        $(this).css('width', cellWidth);
-      });
-      $(e).css('width', $(e.table).css('width'));
-    }
-
-    // Track horizontal positioning relative to the viewport and set visibility.
-    var hScroll = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var vOffset = (document.documentElement.scrollTop || document.body.scrollTop) - e.vPosition;
-    var visState = (vOffset > 0 && vOffset < e.vLength) ? 'visible' : 'hidden';
-    $(e).css({left: -hScroll + e.hPosition +'px', visibility: visState});
-
-    // Check the previous anchor to see if we need to scroll to make room for the header.
-    // Get the height of the header table and scroll up that amount.
-    if (prevAnchor != location.hash) {
-      if (location.hash != '') {
-        var offset = $('td' + location.hash).offset();
-        if (offset) {
-          var top = offset.top;
-          var scrollLocation = top - $(e).height();
-          $('body, html').scrollTop(scrollLocation);
-        }
-      }
-      prevAnchor = location.hash;
-    }
-  }
-
-  // Only attach to scrollbars once, even if Drupal.attachBehaviors is called
-  //  multiple times.
-  if (!$('body').hasClass('tableHeader-processed')) {
-    $('body').addClass('tableHeader-processed');
-    $(window).scroll(Drupal.tableHeaderDoScroll);
-    $(document.documentElement).scroll(Drupal.tableHeaderDoScroll);
-  }
-
-  // Track scrolling.
-  Drupal.tableHeaderOnScroll = function() {
-    $(headers).each(function () {
-      tracker(this);
-    });
-  };
-
-  // Track resizing.
-  var time = null;
-  var resize = function () {
-    // Ensure minimum time between adjustments.
-    if (time) {
-      return;
-    }
-    time = setTimeout(function () {
-      $('table.sticky-header').each(function () {
-        // Force cell width calculation.
-        this.viewHeight = 0;
-        tracker(this);
-      });
-      // Reset timer
-      time = null;
-    }, 250);
-  };
-  $(window).resize(resize);
-};
-;
-
-/**
- * Toggle the visibility of a fieldset using smooth animations
- */
-Drupal.toggleFieldset = function(fieldset) {
-  if ($(fieldset).is('.collapsed')) {
-    // Action div containers are processed separately because of a IE bug
-    // that alters the default submit button behavior.
-    var content = $('> div:not(.action)', fieldset);
-    $(fieldset).removeClass('collapsed');
-    content.hide();
-    content.slideDown( {
-      duration: 'fast',
-      easing: 'linear',
-      complete: function() {
-        Drupal.collapseScrollIntoView(this.parentNode);
-        this.parentNode.animating = false;
-        $('div.action', fieldset).show();
-      },
-      step: function() {
-        // Scroll the fieldset into view
-        Drupal.collapseScrollIntoView(this.parentNode);
-      }
-    });
-  }
-  else {
-    $('div.action', fieldset).hide();
-    var content = $('> div:not(.action)', fieldset).slideUp('fast', function() {
-      $(this.parentNode).addClass('collapsed');
-      this.parentNode.animating = false;
-    });
-  }
-};
-
-/**
- * Scroll a given fieldset into view as much as possible.
- */
-Drupal.collapseScrollIntoView = function (node) {
-  var h = self.innerHeight || document.documentElement.clientHeight || $('body')[0].clientHeight || 0;
-  var offset = self.pageYOffset || document.documentElement.scrollTop || $('body')[0].scrollTop || 0;
-  var posY = $(node).offset().top;
-  var fudge = 55;
-  if (posY + node.offsetHeight + fudge > h + offset) {
-    if (node.offsetHeight > h) {
-      window.scrollTo(0, posY);
-    } else {
-      window.scrollTo(0, posY + node.offsetHeight - h + fudge);
-    }
-  }
-};
-
-Drupal.behaviors.collapse = function (context) {
-  $('fieldset.collapsible > legend:not(.collapse-processed)', context).each(function() {
-    var fieldset = $(this.parentNode);
-    // Expand if there are errors inside
-    if ($('input.error, textarea.error, select.error', fieldset).size() > 0) {
-      fieldset.removeClass('collapsed');
-    }
-
-    // Turn the legend into a clickable link and wrap the contents of the fieldset
-    // in a div for easier animation
-    var text = this.innerHTML;
-      $(this).empty().append($('<a href="#">'+ text +'</a>').click(function() {
-        var fieldset = $(this).parents('fieldset:first')[0];
-        // Don't animate multiple times
-        if (!fieldset.animating) {
-          fieldset.animating = true;
-          Drupal.toggleFieldset(fieldset);
-        }
-        return false;
-      }))
-      .after($('<div class="fieldset-wrapper"></div>')
-      .append(fieldset.children(':not(legend):not(.action)')))
-      .addClass('collapse-processed');
-  });
 };
 ;
 /*
@@ -3435,6 +3260,297 @@ Drupal.behaviors.textarea = function(context) {
       textarea.css('opacity', 1);
     }
   });
+};
+;
+/**
+ * @file base.js
+ *
+ * Some basic behaviors and utility functions for Views.
+ */
+
+Drupal.Views = {};
+
+/**
+ * jQuery UI tabs, Views integration component
+ */
+Drupal.behaviors.viewsTabs = function (context) {
+  $('#views-tabset:not(.views-processed)').addClass('views-processed').each(function() {
+    new Drupal.Views.Tabs($(this), {selectedClass: 'active'});
+  });
+
+  $('a.views-remove-link')
+    .addClass('views-processed')
+    .click(function() {
+      var id = $(this).attr('id').replace('views-remove-link-', '');
+      $('#views-row-' + id).hide();
+      $('#views-removed-' + id).attr('checked', true);
+      return false;
+    });
+}
+
+/**
+ * For IE, attach some javascript so that our hovers do what they're supposed
+ * to do.
+ */
+Drupal.behaviors.viewsHoverlinks = function() {
+  if ($.browser.msie) {
+    // If IE, attach a hover event so we can see our admin links.
+    $("div.view:not(.views-hover-processed)").addClass('views-hover-processed').hover(
+      function() {
+        $('div.views-hide', this).addClass("views-hide-hover"); return true;
+      },
+      function(){
+        $('div.views-hide', this).removeClass("views-hide-hover"); return true;
+      }
+    );
+    $("div.views-admin-links:not(.views-hover-processed)")
+      .addClass('views-hover-processed')
+      .hover(
+        function() {
+          $(this).addClass("views-admin-links-hover"); return true;
+        },
+        function(){
+          $(this).removeClass("views-admin-links-hover"); return true;
+        }
+      );
+  }
+}
+
+/**
+ * Helper function to parse a querystring.
+ */
+Drupal.Views.parseQueryString = function (query) {
+  var args = {};
+  var pos = query.indexOf('?');
+  if (pos != -1) {
+    query = query.substring(pos + 1);
+  }
+  var pairs = query.split('&');
+  for(var i in pairs) {
+    if (typeof(pairs[i]) == 'string') {
+      var pair = pairs[i].split('=');
+      // Ignore the 'q' path argument, if present.
+      if (pair[0] != 'q' && pair[1]) {
+        args[pair[0]] = decodeURIComponent(pair[1].replace(/\+/g, ' '));
+      }
+    }
+  }
+  return args;
+};
+
+/**
+ * Helper function to return a view's arguments based on a path.
+ */
+Drupal.Views.parseViewArgs = function (href, viewPath) {
+  var returnObj = {};
+  var path = Drupal.Views.getPath(href);
+  // Ensure we have a correct path.
+  if (viewPath && path.substring(0, viewPath.length + 1) == viewPath + '/') {
+    var args = decodeURIComponent(path.substring(viewPath.length + 1, path.length));
+    returnObj.view_args = args;
+    returnObj.view_path = path;
+  }
+  return returnObj;
+};
+
+/**
+ * Strip off the protocol plus domain from an href.
+ */
+Drupal.Views.pathPortion = function (href) {
+  // Remove e.g. http://example.com if present.
+  var protocol = window.location.protocol;
+  if (href.substring(0, protocol.length) == protocol) {
+    // 2 is the length of the '//' that normally follows the protocol
+    href = href.substring(href.indexOf('/', protocol.length + 2));
+  }
+  return href;
+};
+
+/**
+ * Return the Drupal path portion of an href.
+ */
+Drupal.Views.getPath = function (href) {
+  href = Drupal.Views.pathPortion(href);
+  href = href.substring(Drupal.settings.basePath.length, href.length);
+  // 3 is the length of the '?q=' added to the url without clean urls.
+  if (href.substring(0, 3) == '?q=') {
+    href = href.substring(3, href.length);
+  }
+  var chars = ['#', '?', '&'];
+  for (i in chars) {
+    if (href.indexOf(chars[i]) > -1) {
+      href = href.substr(0, href.indexOf(chars[i]));
+    }
+  }
+  return href;
+};
+;
+
+/**
+ * @file ajaxView.js
+ *
+ * Handles AJAX fetching of views, including filter submission and response.
+ */
+
+Drupal.Views.Ajax = Drupal.Views.Ajax || {};
+
+/**
+ * An ajax responder that accepts a packet of JSON data and acts appropriately.
+ *
+ * The following fields control behavior.
+ * - 'display': Display the associated data in the view area.
+ */
+Drupal.Views.Ajax.ajaxViewResponse = function(target, response) {
+
+  if (response.debug) {
+    alert(response.debug);
+  }
+
+  var $view = $(target);
+
+  // Check the 'display' for data.
+  if (response.status && response.display) {
+    var $newView = $(response.display);
+    $view.replaceWith($newView);
+    $view = $newView;
+    Drupal.attachBehaviors($view.parent());
+  }
+
+  if (response.messages) {
+    // Show any messages (but first remove old ones, if there are any).
+    $view.find('.views-messages').remove().end().prepend(response.messages);
+  }
+};
+
+/**
+ * Ajax behavior for views.
+ */
+Drupal.behaviors.ViewsAjaxView = function() {
+  if (Drupal.settings && Drupal.settings.views && Drupal.settings.views.ajaxViews) {
+    var ajax_path = Drupal.settings.views.ajax_path;
+    // If there are multiple views this might've ended up showing up multiple times.
+    if (ajax_path.constructor.toString().indexOf("Array") != -1) {
+      ajax_path = ajax_path[0];
+    }
+    $.each(Drupal.settings.views.ajaxViews, function(i, settings) {
+      if (settings.view_dom_id) {
+        var view = '.view-dom-id-' + settings.view_dom_id;
+        if (!$(view).size()) {
+          // Backward compatibility: if 'views-view.tpl.php' is old and doesn't
+          // contain the 'view-dom-id-#' class, we fall back to the old way of
+          // locating the view:
+          view = '.view-id-' + settings.view_name + '.view-display-id-' + settings.view_display_id;
+        }
+      }
+
+
+      // Process exposed filter forms.
+      $('form#views-exposed-form-' + settings.view_name.replace(/_/g, '-') + '-' + settings.view_display_id.replace(/_/g, '-'))
+      .filter(':not(.views-processed)')
+      .each(function () {
+        // remove 'q' from the form; it's there for clean URLs
+        // so that it submits to the right place with regular submit
+        // but this method is submitting elsewhere.
+        $('input[name=q]', this).remove();
+        var form = this;
+        // ajaxSubmit doesn't accept a data argument, so we have to
+        // pass additional fields this way.
+        $.each(settings, function(key, setting) {
+          $(form).append('<input type="hidden" name="'+ key + '" value="'+ setting +'"/>');
+        });
+      })
+      .addClass('views-processed')
+      .submit(function () {
+        $('input[type=submit], button', this).after('<span class="views-throbbing">&nbsp</span>');
+        var object = this;
+        $(this).ajaxSubmit({
+          url: ajax_path,
+          type: 'GET',
+          success: function(response) {
+            // Call all callbacks.
+            if (response.__callbacks) {
+              $.each(response.__callbacks, function(i, callback) {
+                eval(callback)(view, response);
+              });
+              $('.views-throbbing', object).remove();
+            }
+          },
+          error: function(xhr) { Drupal.Views.Ajax.handleErrors(xhr, ajax_path); $('.views-throbbing', object).remove(); },
+          dataType: 'json'
+        });
+
+        return false;
+      });
+
+      $(view).filter(':not(.views-processed)')
+        // Don't attach to nested views. Doing so would attach multiple behaviors
+        // to a given element.
+        .filter(function() {
+          // If there is at least one parent with a view class, this view
+          // is nested (e.g., an attachment). Bail.
+          return !$(this).parents('.view').size();
+        })
+        .each(function() {
+          // Set a reference that will work in subsequent calls.
+          var target = this;
+          $(this)
+            .addClass('views-processed')
+            // Process pager, tablesort, and attachment summary links.
+            .find('ul.pager > li > a, th.views-field a, .attachment .views-summary a')
+            .each(function () {
+              var viewData = { 'js': 1 };
+              // Construct an object using the settings defaults and then overriding
+              // with data specific to the link.
+              $.extend(
+                viewData,
+                Drupal.Views.parseQueryString($(this).attr('href')),
+                // Extract argument data from the URL.
+                Drupal.Views.parseViewArgs($(this).attr('href'), settings.view_base_path),
+                // Settings must be used last to avoid sending url aliases to the server.
+                settings
+              );
+              $(this).click(function () {
+                $.extend(viewData, Drupal.Views.parseViewArgs($(this).attr('href'), settings.view_base_path));
+                $(this).addClass('views-throbbing');
+                $.ajax({
+                  url: ajax_path,
+                  type: 'GET',
+                  data: viewData,
+                  success: function(response) {
+                    $(this).removeClass('views-throbbing');
+                    // Scroll to the top of the view. This will allow users
+                    // to browse newly loaded content after e.g. clicking a pager
+                    // link.
+                    var offset = $(target).offset();
+                    // We can't guarantee that the scrollable object should be
+                    // the body, as the view could be embedded in something
+                    // more complex such as a modal popup. Recurse up the DOM
+                    // and scroll the first element that has a non-zero top.
+                    var scrollTarget = target;
+                    while ($(scrollTarget).scrollTop() == 0 && $(scrollTarget).parent()) {
+                      scrollTarget = $(scrollTarget).parent()
+                    }
+                    // Only scroll upward
+                    if (offset.top - 10 < $(scrollTarget).scrollTop()) {
+                      $(scrollTarget).animate({scrollTop: (offset.top - 10)}, 500);
+                    }
+                    // Call all callbacks.
+                    if (response.__callbacks) {
+                      $.each(response.__callbacks, function(i, callback) {
+                        eval(callback)(target, response);
+                      });
+                    }
+                  },
+                  error: function(xhr) { $(this).removeClass('views-throbbing'); Drupal.Views.Ajax.handleErrors(xhr, ajax_path); },
+                  dataType: 'json'
+                });
+
+                return false;
+              });
+            }); // .each function () {
+      }); // $view.filter().each
+    }); // .each Drupal.settings.views.ajaxViews
+  } // if
 };
 ;
 /*
