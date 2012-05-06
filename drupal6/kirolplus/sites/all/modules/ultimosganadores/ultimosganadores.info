@@ -1,0 +1,3 @@
+name = UltimosGanadores
+description = El modulo mediante el cual se puede saber quienes han sido los ultimos usuarios en recibir premios
+core = 6.x

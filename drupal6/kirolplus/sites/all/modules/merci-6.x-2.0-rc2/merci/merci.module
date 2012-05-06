@@ -324,10 +324,10 @@ function merci_form(&$node, $form_state) {
   //}
 
   // Choice adding code mostly stolen from poll module.
-  $choice_count = empty($node->choice_count) ? 3 : $node->choice_count;
+  $choice_count = empty($node->choice_count) ? 1 : $node->choice_count;
 
   if (array_key_exists('op', $form_state['post']) and $form_state['post']['op'] == "Add more items") {
-    $choice_count += 3;
+    $choice_count += 0;
   }
 
   $form['choice_wrapper']['choice_count'] = array(
