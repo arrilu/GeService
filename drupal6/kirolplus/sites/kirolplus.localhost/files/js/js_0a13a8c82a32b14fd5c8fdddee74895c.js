@@ -1596,1062 +1596,6 @@ Drupal.behaviors.adminToolbarMenu = function(context) {
   }
 };
 ;
-/* $Id: gmap.js,v 1.16.2.1 2010/04/08 13:40:19 rooby Exp $ */
-
-/**
- * @file
- * Drupal to Google Maps API bridge.
- */
-
-/*global $, Drupal, GLatLng, GSmallZoomControl, GLargeMapControl, GMap2 */
-/*global GMapTypeControl, GSmallMapControl, G_HYBRID_MAP, G_NORMAL_MAP */
-/*global G_PHYSICAL_MAP, G_SATELLITE_MAP, GHierarchicalMapTypeControl */
-/*global GKeyboardHandler, GLatLngBounds, GMenuMapTypeControl, GEvent */
-/*global GOverviewMapControl, GScaleControl, GUnload */
-
-(function () { // BEGIN closure
-  var handlers = {};
-  var maps = {};
-  var ajaxoffset = 0;
-
-  Drupal.gmap = {
-
-    /**
-     * Retrieve a map object for use by a non-widget.
-     * Use this if you need to be able to fire events against a certain map
-     * which you have the mapid for.
-     * Be a good GMap citizen! Remember to send change()s after modifying variables!
-     */
-    getMap: function (mapid) {
-      if (maps[mapid]) {
-        return maps[mapid];
-      }
-      else {
-        // Perhaps the user passed a widget id instead?
-        mapid = mapid.split('-').slice(1, -1).join('-');
-        if (maps[mapid]) {
-          return maps[mapid];
-        }
-      }
-      return false;
-    },
-
-    unloadMap: function (mapid) {
-      delete maps[mapid];
-    },
-
-    addHandler: function (handler, callback) {
-      if (!handlers[handler]) {
-        handlers[handler] = [];
-      }
-      handlers[handler].push(callback);
-    },
-
-    globalChange: function (name, userdata) {
-      for (var mapid in Drupal.settings.gmap) {
-        if (Drupal.settings.gmap.hasOwnProperty(mapid)) {
-          maps[mapid].change(name, -1, userdata);
-        }
-      }
-    },
-
-    setup: function (settings) {
-      var obj = this;
-
-      var initcallback = function (mapid) {
-        return (function () {
-          maps[mapid].change("bootstrap_options", -1);
-          maps[mapid].change("boot", -1);
-          maps[mapid].change("init", -1);
-          // Send some changed events to fire up the rest of the initial settings..
-          maps[mapid].change("maptypechange", -1);
-          maps[mapid].change("controltypechange", -1);
-          maps[mapid].change("alignchange", -1);
-          // Set ready to put the event system into action.
-          maps[mapid].ready = true;
-          maps[mapid].change("ready", -1);
-        });
-      };
-
-      if (settings || (Drupal.settings && Drupal.settings.gmap)) {
-        var mapid = obj.id.split('-');
-        if (Drupal.settings['gmap_remap_widgets']) {
-          if (Drupal.settings['gmap_remap_widgets'][obj.id]) {
-            jQuery.each(Drupal.settings['gmap_remap_widgets'][obj.id].classes, function() {
-              jQuery(obj).addClass(this);
-            });
-            mapid = Drupal.settings['gmap_remap_widgets'][obj.id].id.split('-');
-          }
-        }
-        var instanceid = mapid.pop();
-        mapid.shift();
-        mapid = mapid.join('-');
-        var control = instanceid.replace(/\d+$/, '');
-
-        // Lazy init the map object.
-        if (!maps[mapid]) {
-          if (settings) {
-            maps[mapid] = new Drupal.gmap.map(settings);
-          }
-          else {
-            maps[mapid] = new Drupal.gmap.map(Drupal.settings.gmap[mapid]);
-          }
-          // Prepare the initialization callback.
-          var callback = initcallback(mapid);
-          setTimeout(callback, 0);
-        }
-
-        if (handlers[control]) {
-          for (var i = 0; i < handlers[control].length; i++) {
-            handlers[control][i].call(maps[mapid], obj);
-          }
-        }
-        else {
-          // Element with wrong class?
-        }
-      }
-    }
-  };
-
-  jQuery.fn.createGMap = function (settings, mapid) {
-    return this.each(function () {
-      if (!mapid) {
-        mapid = 'auto' + ajaxoffset + 'ajax';
-        ajaxoffset++;
-      }
-      settings.id = mapid;
-      $(this)
-        .attr('id', 'gmap-' + mapid + '-gmap0')
-        .css('width', settings.width)
-        .css('height', settings.height)
-        .addClass('gmap-control')
-        .addClass('gmap-gmap')
-        .addClass('gmap')
-        .addClass('gmap-map')
-        .addClass('gmap-' + mapid + '-gmap')
-        .addClass('gmap-processed')
-        .each(function() {Drupal.gmap.setup.call(this, settings)});
-    });
-  };
-
-})(); // END closure
-
-Drupal.gmap.factory = {};
-
-Drupal.gmap.map = function (v) {
-  this.vars = v;
-  this.map = undefined;
-  this.ready = false;
-  var _bindings = {};
-
-  /**
-   * Register interest in a change.
-   */
-  this.bind = function (name, callback) {
-    if (!_bindings[name]) {
-      _bindings[name] = [];
-    }
-    return _bindings[name].push(callback) - 1;
-  };
-
-  /**
-   * Change notification.
-   * Interested parties can act on changes.
-   */
-  this.change = function (name, id, userdata) {
-    var c;
-    if (_bindings[name]) {
-      for (c = 0; c < _bindings[name].length; c++) {
-        if (c !== id) {
-          _bindings[name][c](userdata);
-        }
-      }
-    }
-    if (name !== 'all') {
-      this.change('all', -1, name, userdata);
-    }
-  };
-
-  /**
-   * Deferred change notification.
-   * This will cause a change notification to be tacked on to the *end* of the event queue.
-   */
-  this.deferChange = function (name, id, userdata) {
-    var obj = this;
-    // This will move the function call to the end of the event loop.
-    setTimeout(function () {
-      obj.change(name, id, userdata);
-    }, 0);
-  };
-};
-
-////////////////////////////////////////
-//             Map widget             //
-////////////////////////////////////////
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-
-  var _ib = {};
-
-
-  // Respond to incoming zooms
-  _ib.zoom = obj.bind("zoom", function () {
-    obj.map.setZoom(obj.vars.zoom);
-  });
-
-  // Respond to incoming moves
-  _ib.move = obj.bind("move", function () {
-    obj.map.panTo(new GLatLng(obj.vars.latitude, obj.vars.longitude));
-  });
-
-  // Respond to incoming map type changes
-  _ib.mtc = obj.bind("maptypechange", function () {
-    var i;
-    for (i = 0; i < obj.opts.mapTypeNames.length; i++) {
-      if (obj.opts.mapTypeNames[i] === obj.vars.maptype) {
-        obj.map.setMapType(obj.opts.mapTypes[i]);
-        break;
-      }
-    }
-  });
-
-  // Respond to incoming width changes.
-  _ib.width = obj.bind("widthchange", function (w) {
-    obj.map.getContainer().style.width = w;
-    obj.map.checkResize();
-  });
-  // Send out outgoing width changes.
-  // N/A
-  // Respond to incoming height changes.
-  _ib.height = obj.bind("heightchange", function (h) {
-    obj.map.getContainer().style.height = h;
-    obj.map.checkResize();
-  });
-  // Send out outgoing height changes.
-  // N/A
-
-  // Respond to incoming control type changes.
-  _ib.ctc = obj.bind("controltypechange", function () {
-    if (obj.currentcontrol) {
-      obj.map.removeControl(obj.currentcontrol);
-    }
-    if (obj.vars.controltype === 'Micro') {
-      obj.map.addControl(obj.currentcontrol = new GSmallZoomControl());
-    }
-    else if (obj.vars.controltype === 'Small') {
-      obj.map.addControl(obj.currentcontrol = new GSmallMapControl());
-    }
-    else if (obj.vars.controltype === 'Large') {
-      obj.map.addControl(obj.currentcontrol = new GLargeMapControl());
-    }
-  });
-  // Send out outgoing control type changes.
-  // N/A
-
-  obj.bind("bootstrap_options", function () {
-    // Bootup options.
-    var opts = {}; // Object literal GMapOptions
-    obj.opts = opts;
-
-    // Null out the enabled types.
-    opts.mapTypes = [];
-    opts.mapTypeNames = [];
-
-    // Load google map types.
-    if (obj.vars.baselayers.Map) {
-      opts.mapTypes.push(G_NORMAL_MAP);
-      opts.mapTypeNames.push('Map');
-    }
-    if (obj.vars.baselayers.Satellite) {
-      opts.mapTypes.push(G_SATELLITE_MAP);
-      opts.mapTypeNames.push('Satellite');
-    }
-    if (obj.vars.baselayers.Hybrid) {
-      opts.mapTypes.push(G_HYBRID_MAP);
-      opts.mapTypeNames.push('Hybrid');
-    }
-    if (obj.vars.baselayers.Physical) {
-      opts.mapTypes.push(G_PHYSICAL_MAP);
-      opts.mapTypeNames.push('Physical');
-    }
-
-  });
-
-  obj.bind("boot", function () {
-    obj.map = new GMap2(elem, obj.opts);
-  });
-
-  obj.bind("init", function () {
-    var map = obj.map;
-
-    // Map type control
-    if (obj.vars.mtc === 'standard') {
-      map.addControl(new GMapTypeControl());
-    }
-    else if (obj.vars.mtc === 'hier') {
-      map.addControl(new GHierarchicalMapTypeControl());
-    }
-    else if (obj.vars.mtc === 'menu') {
-      map.addControl(new GMenuMapTypeControl());
-    }
-
-    if (obj.vars.behavior.overview) {
-      map.addControl(new GOverviewMapControl());
-    }
-    if (obj.vars.behavior.googlebar) {
-      map.enableGoogleBar();
-    }
-    if (obj.vars.behavior.scale) {
-      map.addControl(new GScaleControl());
-    }
-    if (obj.vars.behavior.nodrag) {
-      map.disableDragging();
-    }
-    else if (!obj.vars.behavior.nokeyboard) {
-      obj._kbdhandler = new GKeyboardHandler(map);
-    }
-    if (obj.vars.extent) {
-      var c = obj.vars.extent;
-      var extent = new GLatLngBounds(new GLatLng(c[0][0], c[0][1]), new GLatLng(c[1][0], c[1][1]));
-      obj.vars.latitude = extent.getCenter().lat();
-      obj.vars.longitude = extent.getCenter().lng();
-      obj.vars.zoom = map.getBoundsZoomLevel(extent);
-    }
-    if (obj.vars.behavior.collapsehack) {
-      // Modify collapsable fieldsets to make maps check dom state when the resize handle
-      // is clicked. This may not necessarily be the correct thing to do in all themes,
-      // hence it being a behavior.
-      setTimeout(function () {
-        var r = function () {
-          map.checkResize();
-          map.setCenter(new GLatLng(obj.vars.latitude, obj.vars.longitude), obj.vars.zoom);
-        };
-        $(elem).parents('fieldset.collapsible').children('legend').children('a').click(r);
-        // Would be nice, but doesn't work.
-        //$(elem).parents('fieldset.collapsible').children('.fieldset-wrapper').scroll(r);
-      }, 0);
-    }
-    map.setCenter(new GLatLng(obj.vars.latitude, obj.vars.longitude), obj.vars.zoom);
-
-    if (!obj.vars.nocontzoom) {
-      map.enableDoubleClickZoom();
-      map.enableContinuousZoom();
-    }
-    if (!obj.vars.behavior.nomousezoom) {
-      map.enableScrollWheelZoom();
-    }
-
-    // Send out outgoing zooms
-    GEvent.addListener(map, "zoomend", function (oldzoom, newzoom) {
-      obj.vars.zoom = newzoom;
-      obj.change("zoom", _ib.zoom);
-    });
-
-    // Send out outgoing moves
-    GEvent.addListener(map, "moveend", function () {
-      var coord = map.getCenter();
-      obj.vars.latitude = coord.lat();
-      obj.vars.longitude = coord.lng();
-      obj.change("move", _ib.move);
-    });
-
-    // Send out outgoing map type changes.
-    GEvent.addListener(map, "maptypechanged", function () {
-      // If the map isn't ready yet, ignore it.
-      if (obj.ready) {
-        var type = map.getCurrentMapType();
-        var i;
-        for (i = 0; i < obj.opts.mapTypes.length; i++) {
-          if (obj.opts.mapTypes[i] === type) {
-            obj.vars.maptype = obj.opts.mapTypeNames[i];
-          }
-        }
-        obj.change("maptypechange", _ib.mtc);
-      }
-    });
-
-  });
-});
-
-////////////////////////////////////////
-//            Zoom widget             //
-////////////////////////////////////////
-Drupal.gmap.addHandler('zoom', function (elem) {
-  var obj = this;
-  // Respond to incoming zooms
-  var binding = obj.bind("zoom", function () {
-    elem.value = obj.vars.zoom;
-  });
-  // Send out outgoing zooms
-  $(elem).change(function () {
-    obj.vars.zoom = parseInt(elem.value, 10);
-    obj.change("zoom", binding);
-  });
-});
-
-////////////////////////////////////////
-//          Latitude widget           //
-////////////////////////////////////////
-Drupal.gmap.addHandler('latitude', function (elem) {
-  var obj = this;
-  // Respond to incoming movements.
-  var binding = obj.bind("move", function () {
-    elem.value = '' + obj.vars.latitude;
-  });
-  // Send out outgoing movements.
-  $(elem).change(function () {
-    obj.vars.latitude = Number(this.value);
-    obj.change("move", binding);
-  });
-});
-
-////////////////////////////////////////
-//         Longitude widget           //
-////////////////////////////////////////
-Drupal.gmap.addHandler('longitude', function (elem) {
-  var obj = this;
-  // Respond to incoming movements.
-  var binding = obj.bind("move", function () {
-    elem.value = '' + obj.vars.longitude;
-  });
-  // Send out outgoing movements.
-  $(elem).change(function () {
-    obj.vars.longitude = Number(this.value);
-    obj.change("move", binding);
-  });
-});
-
-////////////////////////////////////////
-//          Latlon widget             //
-////////////////////////////////////////
-Drupal.gmap.addHandler('latlon', function (elem) {
-  var obj = this;
-  // Respond to incoming movements.
-  var binding = obj.bind("move", function () {
-    elem.value = '' + obj.vars.latitude + ',' + obj.vars.longitude;
-  });
-  // Send out outgoing movements.
-  $(elem).change(function () {
-    var t = this.value.split(',');
-    obj.vars.latitude = Number(t[0]);
-    obj.vars.longitude = Number(t[1]);
-    obj.change("move", binding);
-  });
-});
-
-////////////////////////////////////////
-//          Maptype widget            //
-////////////////////////////////////////
-Drupal.gmap.addHandler('maptype', function (elem) {
-  var obj = this;
-  // Respond to incoming movements.
-  var binding = obj.bind("maptypechange", function () {
-    elem.value = obj.vars.maptype;
-  });
-  // Send out outgoing movements.
-  $(elem).change(function () {
-    obj.vars.maptype = elem.value;
-    obj.change("maptypechange", binding);
-  });
-});
-
-(function () { // BEGIN CLOSURE
-  var re = /([0-9.]+)\s*(em|ex|px|in|cm|mm|pt|pc|%)/;
-  var normalize = function (str) {
-    var ar;
-    if ((ar = re.exec(str.toLowerCase()))) {
-      return ar[1] + ar[2];
-    }
-    return null;
-  };
-  ////////////////////////////////////////
-  //           Width widget             //
-  ////////////////////////////////////////
-  Drupal.gmap.addHandler('width', function (elem) {
-    var obj = this;
-    // Respond to incoming width changes.
-    var binding = obj.bind("widthchange", function (w) {
-      elem.value = normalize(w);
-    });
-    // Send out outgoing width changes.
-    $(elem).change(function () {
-      var n;
-      if ((n = normalize(elem.value))) {
-        elem.value = n;
-        obj.change('widthchange', binding, n);
-      }
-    });
-    obj.bind('init', function () {
-      $(elem).change();
-    });
-  });
-
-  ////////////////////////////////////////
-  //           Height widget            //
-  ////////////////////////////////////////
-  Drupal.gmap.addHandler('height', function (elem) {
-    var obj = this;
-    // Respond to incoming height changes.
-    var binding = obj.bind("heightchange", function (h) {
-      elem.value = normalize(h);
-    });
-    // Send out outgoing height changes.
-    $(elem).change(function () {
-      var n;
-      if ((n = normalize(elem.value))) {
-        elem.value = n;
-        obj.change('heightchange', binding, n);
-      }
-    });
-    obj.bind('init', function () {
-      $(elem).change();
-    });
-  });
-
-})(); // END CLOSURE
-
-////////////////////////////////////////
-//        Control type widget         //
-////////////////////////////////////////
-Drupal.gmap.addHandler('controltype', function (elem) {
-  var obj = this;
-  // Respond to incoming height changes.
-  var binding = obj.bind("controltypechange", function () {
-    elem.value = obj.vars.controltype;
-  });
-  // Send out outgoing height changes.
-  $(elem).change(function () {
-    obj.vars.controltype = elem.value;
-    obj.change("controltypechange", binding);
-  });
-});
-
-// Map cleanup.
-if (Drupal.jsEnabled) {
-  $(document).unload(GUnload);
-}
-
-Drupal.behaviors.GMap = function (context) {
-  if (Drupal.settings && Drupal.settings['gmap_remap_widgets']) {
-    jQuery.each(Drupal.settings['gmap_remap_widgets'], function(key, val) {
-      $('#'+ key).addClass('gmap-control');
-    });
-  }
-  $('.gmap-control:not(.gmap-processed)', context).addClass('gmap-processed').each(function () {Drupal.gmap.setup.call(this)});
-};
-;
-/* $Id: marker.js,v 1.4.2.1 2010/04/08 13:40:19 rooby Exp $ */
-
-/**
- * @file
- * Common marker routines.
- */
-
-/*global $, Drupal, GEvent, GInfoWindowTab, GLatLng, GLatLngBounds */
-
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-
-  obj.bind('init', function () {
-    if (obj.vars.behavior.autozoom) {
-      obj.bounds = new GLatLngBounds();
-    }
-  });
-
-  obj.bind('addmarker', function (marker) {
-    var m = Drupal.gmap.factory.marker(new GLatLng(marker.latitude, marker.longitude), marker.opts);
-    marker.marker = m;
-    GEvent.addListener(m, 'click', function () {
-      obj.change('clickmarker', -1, marker);
-    });
-    if (obj.vars.behavior.highlight) {
-      GEvent.addListener(m, 'mouseover', function () {
-        var highlightColor = '#' + obj.vars.styles.highlight_color;
-        highlightMarker(obj.map, marker, 'hoverHighlight', highlightColor);
-      });
-      GEvent.addListener(m, 'mouseout', function () {
-        unHighlightMarker(obj.map, marker, 'hoverHighlight');
-      });
-    }
-    if (obj.vars.behavior.extramarkerevents) {
-      GEvent.addListener(m, 'mouseover', function () {
-        obj.change('mouseovermarker', -1, marker);
-      });
-      GEvent.addListener(m, 'mouseout', function () {
-        obj.change('mouseoutmarker', -1, marker);
-      });
-      GEvent.addListener(m, 'dblclick', function () {
-        obj.change('dblclickmarker', -1, marker);
-      });
-    }
-    /**
-     * Perform a synthetic marker click on this marker on load.
-     */
-    if (marker.autoclick || (marker.options && marker.options.autoclick)) {
-      obj.deferChange('clickmarker', -1, marker);
-    }
-    if (obj.vars.behavior.autozoom) {
-      obj.bounds.extend(marker.marker.getPoint());
-    }
-    // If the highlight arg option is used in views highlight the marker.
-    if (marker.opts.highlight == 1) {
-      highlightMarker(obj.map, marker, 'viewHighlight', marker.opts.highlightcolor);
-    }
-  });
-
-  // Default marker actions.
-  obj.bind('clickmarker', function (marker) {
-    // Local/stored content
-    if (marker.text) {
-      marker.marker.openInfoWindowHtml(marker.text);
-    }
-    // AJAX content
-    if (marker.rmt) {
-      var uri = marker.rmt;
-      // If there was a callback, prefix that.
-      // (If there wasn't, marker.rmt was the FULL path.)
-      if (obj.vars.rmtcallback) {
-        uri = obj.vars.rmtcallback + '/' + marker.rmt;
-      }
-      // @Bevan: I think it makes more sense to do it in this order.
-      // @Bevan: I don't like your choice of variable btw, seems to me like
-      // @Bevan: it belongs in the map object, or at *least* somewhere in
-      // @Bevan: the gmap settings proper...
-      //if (!marker.text && Drupal.settings.loadingImage) {
-      //  marker.marker.openInfoWindowHtml(Drupal.settings.loadingImage);
-      //}
-      $.get(uri, {}, function (data) {
-        marker.marker.openInfoWindowHtml(data);
-      });
-    }
-    // Tabbed content
-    else if (marker.tabs) {
-      var infoWinTabs = [];
-      for (var m in marker.tabs) {
-        if (marker.tabs.hasOwnProperty(m)) {
-          infoWinTabs.push(new GInfoWindowTab(m, marker.tabs[m]));
-        }
-      }
-      marker.marker.openInfoWindowTabsHtml(infoWinTabs);
-    }
-    // No content -- marker is a link
-    else if (marker.link) {
-      open(marker.link, '_self');
-    }
-  });
-
-  obj.bind('markersready', function () {
-    // If we are autozooming, set the map center at this time.
-    if (obj.vars.behavior.autozoom) {
-      if (!obj.bounds.isEmpty()) {
-        obj.map.setCenter(obj.bounds.getCenter(), Math.min(obj.map.getBoundsZoomLevel(obj.bounds), obj.vars.maxzoom));
-      }
-    }
-  });
-
-  obj.bind('clearmarkers', function () {
-    // Reset bounds if autozooming
-    // @@@ Perhaps we should have a bounds for both markers and shapes?
-    if (obj.vars.behavior.autozoom) {
-      obj.bounds = new GLatLngBounds();
-    }
-  });
-
-  // @@@ TODO: Some sort of bounds handling for deletemarker? We'd have to walk the whole thing to figure out the new bounds...
-});
-;
-/* $Id: highlight.js,v 1.1.2.1 2010/04/08 13:40:19 rooby Exp $ */
-
-/**
- * @file
- * Common marker highlighting routines.
- */
-
-/**
- * Highlights marker on rollover.
- * Removes highlight on previous marker.
- *
- * Creates a "circle" using 20-sided GPolygon at the given point
- * Circle polygon object is global variable as there is only one highlighted marker at a time
- * and we want to remove the previously placed polygon before placing a new one.
- * 
- * Original code "Google Maps JavaScript API Example"
- */
-highlightMarker = function (map, currentMarker, highlightID, color) {
-  var markerPoint = currentMarker.marker.getPoint();
-  var polyPoints = Array();
-
-  var mapNormalProj = G_NORMAL_MAP.getProjection();
-  var mapZoom = map.getZoom();
-  var clickedPixel = mapNormalProj.fromLatLngToPixel(markerPoint, mapZoom);
-
-  var polySmallRadius = 20;
-  var polyNumSides = 20;
-  var polySideLength = 18;
-
-  for (var a = 0; a < (polyNumSides + 1); a++) {
-    var aRad = polySideLength * a * (Math.PI/180);
-    var polyRadius = polySmallRadius; 
-    var pixelX = clickedPixel.x + polyRadius * Math.cos(aRad);
-    var pixelY = clickedPixel.y + polyRadius * Math.sin(aRad);
-    var polyPixel = new GPoint(pixelX, pixelY);
-    var polyPoint = mapNormalProj.fromPixelToLatLng(polyPixel, mapZoom);
-    polyPoints.push(polyPoint);
-  }
-  // Using GPolygon(points,  strokeColor?,  strokeWeight?,  strokeOpacity?,  fillColor?,  fillOpacity?)
-  map.highlightID = new GPolygon(polyPoints, color, 2, 0, color, 0.5);
-  map.addOverlay(map.highlightID);
-};
-
-unHighlightMarker = function (map, currentMarker, highlightID) {
-  if (map.highlightID) {
-    map.removeOverlay(map.highlightID);
-    delete map.highlightID;
-  }
-};
-;
-/* $Id: gmap_marker.js,v 1.3 2009/02/11 18:40:31 bdragon Exp $ */
-
-/**
- * @file
- * GMap Markers
- * GMap API version -- No manager
- */
-
-/*global Drupal, GMarker */
-
-// Replace to override marker creation
-Drupal.gmap.factory.marker = function (loc, opts) {
-  return new GMarker(loc, opts);
-};
-
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-
-  obj.bind('addmarker', function (marker) {
-    obj.map.addOverlay(marker.marker);
-  });
-
-  obj.bind('delmarker', function (marker) {
-    obj.map.removeOverlay(marker.marker);
-  });
-
-  obj.bind('clearmarkers', function () {
-    // @@@ Maybe don't nuke ALL overlays?
-    obj.map.clearOverlays();
-  });
-});
-;
-/* $Id: poly.js,v 1.3 2009/02/11 18:36:04 bdragon Exp $ */
-
-/**
- * @file
- * GPolyLine / GPolygon manager
- */
-
-/*global Drupal, GLatLng, GPoint */
-
-Drupal.gmap.map.prototype.poly = {};
-
-/**
- * Distance in pixels between 2 points.
- */
-Drupal.gmap.map.prototype.poly.distance = function (point1, point2) {
-  return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
-};
-
-/**
- * Circle -- Following projection.
- */
-Drupal.gmap.map.prototype.poly.computeCircle = function (obj, center, point2) {
-  var numSides = 36;
-  var sideInc = 10; // 360 / 20 = 18 degrees
-  var convFactor = Math.PI / 180;
-  var points = [];
-  var radius = obj.poly.distance(center, point2);
-  // 36 sided poly ~= circle
-  for (var i = 0; i <= numSides; i++) {
-    var rad = i * sideInc * convFactor;
-    var x = center.x + radius * Math.cos(rad);
-    var y = center.y + radius * Math.sin(rad);
-    //points.push(obj.map.getCurrentMapType().getProjection().fromPixelToLatLng(new GPoint(x,y),obj.map.getZoom()));
-    points.push(new GPoint(x, y));
-  }
-  return points;
-};
-
-Drupal.gmap.map.prototype.poly.calcPolyPoints = function (center, radM, numPoints, sAngle) {
-  if (!numPoints) {
-    numPoints = 32;
-  }
-  if (!sAngle) {
-    sAngle = 0;
-  }
-
-  var d2r = Math.PI / 180.0;
-  var r2d = 180.0 / Math.PI;
-  var angleRad = sAngle * d2r;
-  // earth semi major axis is about 6378137 m
-  var latScale = radM / 6378137 * r2d;
-  var lngScale = latScale / Math.cos(center.latRadians());
-
-  var angInc = 2 * Math.PI / numPoints;
-  var points = [];
-  for (var i = 0; i < numPoints; i++) {
-    var lat = parseFloat(center.lat()) + latScale * Math.sin(angleRad);
-    var lng = parseFloat(center.lng()) + lngScale * Math.cos(angleRad);
-    points.push(new GLatLng(lat, lng));
-    angleRad += angInc;
-  }
-
-  // close the shape and return it
-  points.push(points[0]);
-  return points;
-};
-;
-/* $Id: icon.js,v 1.6 2009/02/11 20:14:39 bdragon Exp $ */
-
-/**
- * @file
- * GIcon manager for GMap.
- * Required for markers to operate properly.
- */
-
-/*global $, Drupal, GIcon, GPoint, GSize, G_DEFAULT_ICON */
-
-/**
- * Get the GIcon corresponding to a setname / sequence.
- * There is only one GIcon for each slot in the sequence.
- * The marker set wraps around when reaching the end of the sequence.
- * @@@ TODO: Move this directly into the preparemarker event binding.
- */
-Drupal.gmap.getIcon = function (setname, sequence) {
-  var othimg = ['printImage', 'mozPrintImage', 'printShadow', 'transparent'];
-  // If no setname, return google's default icon.
-  if (!setname) {
-    return G_DEFAULT_ICON;
-  }
-  if (!this.gicons) {
-    this.gicons = {};
-  }
-
-  // If no sequence, synthesise one.
-  if (!sequence) {
-    // @TODO make this per-map.
-    if (!this.sequences) {
-      this.sequences = {};
-    }
-    if (!this.sequences[setname]) {
-      this.sequences[setname] = -1;
-    }
-    this.sequences[setname]++;
-    sequence = this.sequences[setname];
-  }
-
-  if (!this.gicons[setname]) {
-    if (!Drupal.gmap.icons[setname]) {
-      alert('Request for invalid marker set ' + setname + '!');
-    }
-    this.gicons[setname] = [];
-    var q = Drupal.gmap.icons[setname];
-    var p, t;
-    for (var i = 0; i < q.sequence.length; i++) {
-      t = new GIcon();
-      p = Drupal.gmap.iconpath + q.path;
-      t.image = p + q.sequence[i].f;
-      if (q.shadow.f !== '') {
-        t.shadow = p + q.shadow.f;
-        t.shadowSize = new GSize(q.shadow.w, q.shadow.h);
-      }
-      t.iconSize = new GSize(q.sequence[i].w, q.sequence[i].h);
-      t.iconAnchor = new GPoint(q.anchorX, q.anchorY);
-      t.infoWindowAnchor = new GPoint(q.infoX, q.infoY);
-      for (var j = 0; j < othimg.length; j++) {
-        if (q[othimg[j]] !== '') {
-          t[othimg[j]] = p + q[othimg[j]];
-        }
-      }
-      // @@@ imageMap?
-      this.gicons[setname][i] = t;
-    }
-    delete Drupal.gmap.icons[setname];
-  }
-  // TODO: Random, other cycle methods.
-  return this.gicons[setname][sequence % this.gicons[setname].length];
-};
-
-/**
- * JSON callback to set up the icon defs.
- * When doing the JSON call, the data comes back in a packed format.
- * We need to expand it and file it away in a more useful format.
- */
-Drupal.gmap.iconSetup = function () {
-  Drupal.gmap.icons = {};
-  var m = Drupal.gmap.icondata;
-  var filef, filew, fileh, files;
-  for (var path in m) {
-    if (m.hasOwnProperty(path)) {
-      // Reconstitute files array
-      filef = m[path].f;
-      filew = Drupal.gmap.expandArray(m[path].w, filef.length);
-      fileh = Drupal.gmap.expandArray(m[path].h, filef.length);
-      files = [];
-      for (var i = 0; i < filef.length; i++) {
-        files[i] = {f : filef[i], w : filew[i], h : fileh[i]};
-      }
-
-      for (var ini in m[path].i) {
-        if (m[path].i.hasOwnProperty(ini)) {
-          $.extend(Drupal.gmap.icons, Drupal.gmap.expandIconDef(m[path].i[ini], path, files));
-        }
-      }
-    }
-  }
-};
-
-/**
- * Expand a compressed array.
- * This will pad arr up to len using the last value of the old array.
- */
-Drupal.gmap.expandArray = function (arr, len) {
-  var d = arr[0];
-  for (var i = 0; i < len; i++) {
-    if (!arr[i]) {
-      arr[i] = d;
-    }
-    else {
-      d = arr[i];
-    }
-  }
-  return arr;
-};
-
-/**
- * Expand icon definition.
- * This helper function is the reverse of the packer function found in
- * gmap_markerinfo.inc.
- */
-Drupal.gmap.expandIconDef = function (c, path, files) {
-  var decomp = ['key', 'name', 'sequence', 'anchorX', 'anchorY', 'infoX',
-    'infoY', 'shadow', 'printImage', 'mozPrintImage', 'printShadow',
-    'transparent'];
-  var fallback = ['', '', [], 0, 0, 0, 0, {f: '', h: 0, w: 0}, '', '', '', ''];
-  var imagerep = ['shadow', 'printImage', 'mozPrintImage', 'printShadow',
-    'transparent'];
-  var defaults = {};
-  var sets = [];
-  var i, j;
-  // Part 1: Defaults / Markersets
-  // Expand arrays and fill in missing ones with fallbacks
-  for (i = 0; i < decomp.length; i++) {
-    if (!c[0][i]) {
-      c[0][i] = [ fallback[i] ];
-    }
-    c[0][i] = Drupal.gmap.expandArray(c[0][i], c[0][0].length);
-  }
-  for (i = 0; i < c[0][0].length; i++) {
-    for (j = 0; j < decomp.length; j++) {
-      if (i === 0) {
-        defaults[decomp[j]] = c[0][j][i];
-      }
-      else {
-        if (!sets[i - 1]) {
-          sets[i - 1] = {};
-        }
-        sets[i - 1][decomp[j]] = c[0][j][i];
-      }
-    }
-  }
-  for (i = 0; i < sets.length; i++) {
-    for (j = 0; j < decomp.length; j++) {
-      if (sets[i][decomp[j]] === fallback[j]) {
-        sets[i][decomp[j]] = defaults[decomp[j]];
-      }
-    }
-  }
-  var icons = {};
-  for (i = 0; i < sets.length; i++) {
-    var key = sets[i].key;
-    icons[key] = sets[i];
-    icons[key].path = path;
-    delete icons[key].key;
-    delete sets[i];
-    for (j = 0; j < icons[key].sequence.length; j++) {
-      icons[key].sequence[j] = files[icons[key].sequence[j]];
-    }
-    for (j = 0; j < imagerep.length; j++) {
-      if (typeof(icons[key][imagerep[j]]) === 'number') {
-        icons[key][imagerep[j]] = files[icons[key][imagerep[j]]];
-      }
-    }
-  }
-  return icons;
-};
-
-/**
- * We attach ourselves if we find a map somewhere needing markers.
- * Note: Since we broadcast our ready event to all maps, it doesn't
- * matter which one we attached to!
- */
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-
-  obj.bind('init', function () {
-    // Only expand once.
-    if (!Drupal.gmap.icons) {
-      Drupal.gmap.iconSetup();
-    }
-  });
-
-  obj.bind('ready', function () {
-    // Compatibility event.
-    if (Drupal.gmap.icondata) {
-      obj.deferChange('iconsready', -1);
-    }
-  });
-
-  if (!obj.vars.behavior.customicons) {
-    // Provide icons to markers.
-    obj.bind('preparemarker', function (marker) {
-      marker.opts.icon = Drupal.gmap.getIcon(marker.markername, marker.offset);
-    });
-  }
-});
-;
-/* $Id: markerloader_static.js,v 1.3 2009/02/11 19:30:22 bdragon Exp $ */
-
-/**
- * @file
- * GMap Marker Loader
- * Static markers.
- * This is a simple marker loader to read markers from the map settings array.
- * Commonly used with macros.
- */
-
-/*global Drupal */
-
-// Add a gmap handler
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-  var marker, i;
-  if (obj.vars.markers) {
-    // Inject markers as soon as the icon loader is ready.
-    obj.bind('iconsready', function () {
-      for (i = 0; i < obj.vars.markers.length; i++) {
-        marker = obj.vars.markers[i];
-        if (!marker.opts) {
-          marker.opts = {};
-        }
-        // Pass around the object, bindings can change it if necessary.
-        obj.change('preparemarker', -1, marker);
-        // And add it.
-        obj.change('addmarker', -1, marker);
-      }
-      obj.change('markersready', -1);
-    });
-  }
-});
-;
 /*
  * jQuery UI 1.6
  *
@@ -4316,6 +3260,297 @@ Drupal.behaviors.textarea = function(context) {
       textarea.css('opacity', 1);
     }
   });
+};
+;
+/**
+ * @file base.js
+ *
+ * Some basic behaviors and utility functions for Views.
+ */
+
+Drupal.Views = {};
+
+/**
+ * jQuery UI tabs, Views integration component
+ */
+Drupal.behaviors.viewsTabs = function (context) {
+  $('#views-tabset:not(.views-processed)').addClass('views-processed').each(function() {
+    new Drupal.Views.Tabs($(this), {selectedClass: 'active'});
+  });
+
+  $('a.views-remove-link')
+    .addClass('views-processed')
+    .click(function() {
+      var id = $(this).attr('id').replace('views-remove-link-', '');
+      $('#views-row-' + id).hide();
+      $('#views-removed-' + id).attr('checked', true);
+      return false;
+    });
+}
+
+/**
+ * For IE, attach some javascript so that our hovers do what they're supposed
+ * to do.
+ */
+Drupal.behaviors.viewsHoverlinks = function() {
+  if ($.browser.msie) {
+    // If IE, attach a hover event so we can see our admin links.
+    $("div.view:not(.views-hover-processed)").addClass('views-hover-processed').hover(
+      function() {
+        $('div.views-hide', this).addClass("views-hide-hover"); return true;
+      },
+      function(){
+        $('div.views-hide', this).removeClass("views-hide-hover"); return true;
+      }
+    );
+    $("div.views-admin-links:not(.views-hover-processed)")
+      .addClass('views-hover-processed')
+      .hover(
+        function() {
+          $(this).addClass("views-admin-links-hover"); return true;
+        },
+        function(){
+          $(this).removeClass("views-admin-links-hover"); return true;
+        }
+      );
+  }
+}
+
+/**
+ * Helper function to parse a querystring.
+ */
+Drupal.Views.parseQueryString = function (query) {
+  var args = {};
+  var pos = query.indexOf('?');
+  if (pos != -1) {
+    query = query.substring(pos + 1);
+  }
+  var pairs = query.split('&');
+  for(var i in pairs) {
+    if (typeof(pairs[i]) == 'string') {
+      var pair = pairs[i].split('=');
+      // Ignore the 'q' path argument, if present.
+      if (pair[0] != 'q' && pair[1]) {
+        args[pair[0]] = decodeURIComponent(pair[1].replace(/\+/g, ' '));
+      }
+    }
+  }
+  return args;
+};
+
+/**
+ * Helper function to return a view's arguments based on a path.
+ */
+Drupal.Views.parseViewArgs = function (href, viewPath) {
+  var returnObj = {};
+  var path = Drupal.Views.getPath(href);
+  // Ensure we have a correct path.
+  if (viewPath && path.substring(0, viewPath.length + 1) == viewPath + '/') {
+    var args = decodeURIComponent(path.substring(viewPath.length + 1, path.length));
+    returnObj.view_args = args;
+    returnObj.view_path = path;
+  }
+  return returnObj;
+};
+
+/**
+ * Strip off the protocol plus domain from an href.
+ */
+Drupal.Views.pathPortion = function (href) {
+  // Remove e.g. http://example.com if present.
+  var protocol = window.location.protocol;
+  if (href.substring(0, protocol.length) == protocol) {
+    // 2 is the length of the '//' that normally follows the protocol
+    href = href.substring(href.indexOf('/', protocol.length + 2));
+  }
+  return href;
+};
+
+/**
+ * Return the Drupal path portion of an href.
+ */
+Drupal.Views.getPath = function (href) {
+  href = Drupal.Views.pathPortion(href);
+  href = href.substring(Drupal.settings.basePath.length, href.length);
+  // 3 is the length of the '?q=' added to the url without clean urls.
+  if (href.substring(0, 3) == '?q=') {
+    href = href.substring(3, href.length);
+  }
+  var chars = ['#', '?', '&'];
+  for (i in chars) {
+    if (href.indexOf(chars[i]) > -1) {
+      href = href.substr(0, href.indexOf(chars[i]));
+    }
+  }
+  return href;
+};
+;
+
+/**
+ * @file ajaxView.js
+ *
+ * Handles AJAX fetching of views, including filter submission and response.
+ */
+
+Drupal.Views.Ajax = Drupal.Views.Ajax || {};
+
+/**
+ * An ajax responder that accepts a packet of JSON data and acts appropriately.
+ *
+ * The following fields control behavior.
+ * - 'display': Display the associated data in the view area.
+ */
+Drupal.Views.Ajax.ajaxViewResponse = function(target, response) {
+
+  if (response.debug) {
+    alert(response.debug);
+  }
+
+  var $view = $(target);
+
+  // Check the 'display' for data.
+  if (response.status && response.display) {
+    var $newView = $(response.display);
+    $view.replaceWith($newView);
+    $view = $newView;
+    Drupal.attachBehaviors($view.parent());
+  }
+
+  if (response.messages) {
+    // Show any messages (but first remove old ones, if there are any).
+    $view.find('.views-messages').remove().end().prepend(response.messages);
+  }
+};
+
+/**
+ * Ajax behavior for views.
+ */
+Drupal.behaviors.ViewsAjaxView = function() {
+  if (Drupal.settings && Drupal.settings.views && Drupal.settings.views.ajaxViews) {
+    var ajax_path = Drupal.settings.views.ajax_path;
+    // If there are multiple views this might've ended up showing up multiple times.
+    if (ajax_path.constructor.toString().indexOf("Array") != -1) {
+      ajax_path = ajax_path[0];
+    }
+    $.each(Drupal.settings.views.ajaxViews, function(i, settings) {
+      if (settings.view_dom_id) {
+        var view = '.view-dom-id-' + settings.view_dom_id;
+        if (!$(view).size()) {
+          // Backward compatibility: if 'views-view.tpl.php' is old and doesn't
+          // contain the 'view-dom-id-#' class, we fall back to the old way of
+          // locating the view:
+          view = '.view-id-' + settings.view_name + '.view-display-id-' + settings.view_display_id;
+        }
+      }
+
+
+      // Process exposed filter forms.
+      $('form#views-exposed-form-' + settings.view_name.replace(/_/g, '-') + '-' + settings.view_display_id.replace(/_/g, '-'))
+      .filter(':not(.views-processed)')
+      .each(function () {
+        // remove 'q' from the form; it's there for clean URLs
+        // so that it submits to the right place with regular submit
+        // but this method is submitting elsewhere.
+        $('input[name=q]', this).remove();
+        var form = this;
+        // ajaxSubmit doesn't accept a data argument, so we have to
+        // pass additional fields this way.
+        $.each(settings, function(key, setting) {
+          $(form).append('<input type="hidden" name="'+ key + '" value="'+ setting +'"/>');
+        });
+      })
+      .addClass('views-processed')
+      .submit(function () {
+        $('input[type=submit], button', this).after('<span class="views-throbbing">&nbsp</span>');
+        var object = this;
+        $(this).ajaxSubmit({
+          url: ajax_path,
+          type: 'GET',
+          success: function(response) {
+            // Call all callbacks.
+            if (response.__callbacks) {
+              $.each(response.__callbacks, function(i, callback) {
+                eval(callback)(view, response);
+              });
+              $('.views-throbbing', object).remove();
+            }
+          },
+          error: function(xhr) { Drupal.Views.Ajax.handleErrors(xhr, ajax_path); $('.views-throbbing', object).remove(); },
+          dataType: 'json'
+        });
+
+        return false;
+      });
+
+      $(view).filter(':not(.views-processed)')
+        // Don't attach to nested views. Doing so would attach multiple behaviors
+        // to a given element.
+        .filter(function() {
+          // If there is at least one parent with a view class, this view
+          // is nested (e.g., an attachment). Bail.
+          return !$(this).parents('.view').size();
+        })
+        .each(function() {
+          // Set a reference that will work in subsequent calls.
+          var target = this;
+          $(this)
+            .addClass('views-processed')
+            // Process pager, tablesort, and attachment summary links.
+            .find('ul.pager > li > a, th.views-field a, .attachment .views-summary a')
+            .each(function () {
+              var viewData = { 'js': 1 };
+              // Construct an object using the settings defaults and then overriding
+              // with data specific to the link.
+              $.extend(
+                viewData,
+                Drupal.Views.parseQueryString($(this).attr('href')),
+                // Extract argument data from the URL.
+                Drupal.Views.parseViewArgs($(this).attr('href'), settings.view_base_path),
+                // Settings must be used last to avoid sending url aliases to the server.
+                settings
+              );
+              $(this).click(function () {
+                $.extend(viewData, Drupal.Views.parseViewArgs($(this).attr('href'), settings.view_base_path));
+                $(this).addClass('views-throbbing');
+                $.ajax({
+                  url: ajax_path,
+                  type: 'GET',
+                  data: viewData,
+                  success: function(response) {
+                    $(this).removeClass('views-throbbing');
+                    // Scroll to the top of the view. This will allow users
+                    // to browse newly loaded content after e.g. clicking a pager
+                    // link.
+                    var offset = $(target).offset();
+                    // We can't guarantee that the scrollable object should be
+                    // the body, as the view could be embedded in something
+                    // more complex such as a modal popup. Recurse up the DOM
+                    // and scroll the first element that has a non-zero top.
+                    var scrollTarget = target;
+                    while ($(scrollTarget).scrollTop() == 0 && $(scrollTarget).parent()) {
+                      scrollTarget = $(scrollTarget).parent()
+                    }
+                    // Only scroll upward
+                    if (offset.top - 10 < $(scrollTarget).scrollTop()) {
+                      $(scrollTarget).animate({scrollTop: (offset.top - 10)}, 500);
+                    }
+                    // Call all callbacks.
+                    if (response.__callbacks) {
+                      $.each(response.__callbacks, function(i, callback) {
+                        eval(callback)(target, response);
+                      });
+                    }
+                  },
+                  error: function(xhr) { $(this).removeClass('views-throbbing'); Drupal.Views.Ajax.handleErrors(xhr, ajax_path); },
+                  dataType: 'json'
+                });
+
+                return false;
+              });
+            }); // .each function () {
+      }); // $view.filter().each
+    }); // .each Drupal.settings.views.ajaxViews
+  } // if
 };
 ;
 /*
