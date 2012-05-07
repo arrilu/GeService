@@ -1,0 +1,3 @@
+name = Clave
+description = Crea codigos aleatorios no repetidos insertandolos en la DB.
+core = 6.x
