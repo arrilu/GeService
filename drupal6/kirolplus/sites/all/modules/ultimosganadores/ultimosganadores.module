@@ -5,12 +5,13 @@
  * @param arg array that holds the current path as would be returned from arg() function
  * @return help text for the path
  */
-function ultimosganadores_help($path, $arg) {
+function ultimosganadores_help($path, $arg) 
+{
   $output = '';  //declare your output variable
   switch ($path) {
-    case "admin/help#ultimosganadores":
-      $output = '<p>'.  t("Displays links to nodes created on this date") .'</p>';
-      break;
+    case 'admin/help#ultimosganadores':
+      $output = '<p>' . t('Displays links to nodes created on this date') . '</p>';
+		break;
   }
   return $output;
 } // function ultimosganadores_help
@@ -20,20 +21,22 @@ function ultimosganadores_help($path, $arg) {
 * Valid permissions for this module
 * @return array An array of valid permissions for the ultimosganadores module
 */
-function ultimosganadores_perm() {
+function ultimosganadores_perm() 
+{
   return array('access ultimosganadores content');
 } // function ultimosganadores_perm()
 
 
 
-function ultimosganadores_block($op='list', $delta=0) {
+function ultimosganadores_block($op='list', $delta=0) 
+{
   // set up the block  
   $block = array();
 
-  if ($op == "list") {
+  if ($op == 'list') {
     // Generate listing of blocks from this module, for the admin/block page
 
-    $block[0]["info"] = t('UltimosGanadores');
+    $block[0]['info'] = t('UltimosGanadores');
   } 
   else if ($op == 'view') {
 
@@ -54,7 +57,9 @@ function ultimosganadores_block($op='list', $delta=0) {
     $end_time = $start_time + 86400;
     // 60 * 60 * 24 = 86400 seconds in a day
 
-    $query = "SELECT u.uid as idusuario, n.nid as idoferta, c.field_coste_puntos_value as puntos, ca.fecha as fecha, n.title as nombreoferta, u.name as nombreusuario FROM {node} n, {users} u,{content_type_oferta} c, {canjeo} ca WHERE n.nid=ca.nid and u.uid=ca.uid and c.nid=n.nid ORDER BY ca.fecha DESC LIMIT 5";
+    $query = 'SELECT u.uid as idusuario, n.nid as idoferta, c.field_coste_puntos_value as puntos, ca.fecha as fecha,
+			 n.title as nombreoferta, u.name as nombreusuario FROM {node} n, {users} u,{content_type_oferta} c,
+			 {canjeo} ca WHERE n.nid=ca.nid and u.uid=ca.uid and c.nid=n.nid ORDER BY ca.fecha DESC LIMIT 5';
 	
 	 
     $query_result =  db_query($query);
@@ -63,7 +68,8 @@ function ultimosganadores_block($op='list', $delta=0) {
 	  $dia=substr($links->fecha,8,2);
 	  $mes=substr($links->fecha,5,2);
 	  $ano=substr($links->fecha,0,4);
-	  $block_content .= l ($links->nombreusuario, 'user/'.$links->idusuario). " $dia"."/"."$mes"."/"."$ano "  . l ($links->nombreoferta, 'node/'.$links->idoferta) .'<br />' ;
+	  $block_content .= l ($links->nombreusuario, 'user/' . $links->idusuario).' ' . $dia .'/' .$mes . '/' . $ano .' '
+					 . l ($links->nombreoferta, 'node/' . $links->idoferta) . '<br />' ;
     }
 
     // Fill in the subject of our block which is the same whether or not
@@ -81,6 +87,5 @@ function ultimosganadores_block($op='list', $delta=0) {
       $block['content'] = $block_content;
     }
   }
-
   return $block;
 }  // end ultimosganadores_block

@@ -8,46 +8,47 @@
 * Implementation of hook_form_alter()
 *
 */
-function valicodigo_form_alter(&$form, $form_state, $form_id) {
-	if ($form_id == 'insertacodigo_node_form') {
-		$form['#validate'] = array('_valicodigo_codigo_node_form_validate');
-	}
-return $form;
+function valicodigo_form_alter(&$form, $form_state, $form_id) 
+{
+		if ($form_id == 'insertacodigo_node_form') {
+			$form['#validate'] = array('valicodigo_codigo_node_form_validate');
+		}
+	return $form;
 }
  
 /*
 * Validates the codigo node form, and throws an error to the user if validation fails
 *
 */
-function _valicodigo_codigo_node_form_validate($form, &$form_state) {
-
+function valicodigo_codigo_node_form_validate($form, &$form_state)
+{
 	global $user;
 	$userid = $user->uid;
 	
 	$codigo = $form[field_codigo][0]['#value'][value];
 	
-	$query = "SELECT count(*) as valido FROM {codigos} WHERE ID = '" . $codigo ."' AND VALIDO = 1";
+	$query = "SELECT count(*) as valido FROM {codigos} WHERE ID = '" . $codigo . "' AND VALIDO = 1";
 	$query_result =  db_query($query);
 	$codigovalido = db_fetch_object($query_result)-> valido;
 	
-	if ($codigovalido ==0){
+	if ($codigovalido == 0) {
 		form_set_error('title', t('Codigo Incorrecto'));
 	}
 	else {
-		$result = db_query("UPDATE {codigos} set VALIDO  = 0 where ID = '".$codigo."'");	
+		$result = db_query("UPDATE {codigos} set VALIDO  = 0 where ID = '" . $codigo . "'");	
 		
-		$query2 = "SELECT VALOR as puntos FROM {codigos} WHERE ID ='" . $codigo."'";
+		$query2 = "SELECT VALOR as puntos FROM {codigos} WHERE ID ='" . $codigo . "'";
 		$query_result2 =  db_query($query2);
 		$puntoscod = db_fetch_object($query_result2)-> puntos;
 		
-		$query3 = "SELECT points as puntos FROM {userpoints} WHERE uid = " . $userid;
+		$query3 = 'SELECT points as puntos FROM {userpoints} WHERE uid = ' . $userid;
 		$query_result3 =  db_query($query3);
 		$puntosuser = db_fetch_object($query_result3)-> puntos;
 		
 		$nuevospuntos = $puntosuser + $puntoscod;
 
-		$result = db_query("UPDATE {userpoints} set points  = %d where uid = %d",$nuevospuntos,$userid);
+		$result = db_query('UPDATE {userpoints} set points  = %d where uid = %d', $nuevospuntos, $userid);
 		
-		drupal_set_message("Codigo correcto, se te han sumado tus puntos",status);
+		drupal_set_message('Codigo correcto, se te han sumado tus puntos', status);
 	}
 }
