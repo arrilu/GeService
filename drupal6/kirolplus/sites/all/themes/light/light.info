@@ -1,0 +1,28 @@
+name = Light
+description = A port of Light created by Stephen Reinhardt.  A two column design with tabs.
+screenshot = screenshot.png
+version = VERSION
+core = 6.x
+engine = phptemplate
+regions[sidebar] = Sidebar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = footer
+features[] = name
+features[] = slogan
+features[] = primary_links    
+features[] = logo
+stylesheets[all][] = style.css
+; Information added by drupal.org packaging script on 2010-04-24
+version = "6.x-2.6"
+core = "6.x"
+project = "light"
+datestamp = "1272108908"
+
+
+; Information added by drupal.org packaging script on 2011-08-22
+version = "6.x-2.8"
+core = "6.x"
+project = "light"
+datestamp = "1314038221"
+
