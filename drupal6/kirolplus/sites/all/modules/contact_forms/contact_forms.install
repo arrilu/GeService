@@ -1,0 +1,70 @@
+<?php
+// $Id: contact_forms.install,v 1.9 2009/11/09 06:46:37 gpdinoz Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function contact_forms_install() {
+  //Alter the contact table to add an info field for each category
+   $ret = array();
+  db_add_field($ret, 'contact', 'page_info', array('type' => 'text', 'size' => 'big', 'not null' => FALSE));
+
+  watchdog ('Contact Forms', 'contact_forms module installed');
+  drupal_set_message(t("Contact Forms module has been enabled. You can edit its settings at !link",
+    array( '!link' => l('Administer > Site building > Contact form ',  'admin/build/contact/settings' ) )
+  ));
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function contact_forms_uninstall() {
+
+  // remove variables
+  variable_del('contactforms_information');
+  variable_del('contactform_title');
+  variable_del('contactform_redirect');
+
+  //remove category information field
+  $ret = array();
+  db_drop_field($ret, 'contact', 'page_info');
+
+  
+  // clear the cache tables
+  cache_clear_all(null, 'cache');
+  cache_clear_all(null, 'cache_filter');
+  cache_clear_all(null, 'cache_menu');
+  cache_clear_all(null, 'cache_page');
+
+  watchdog ('Contact Forms', 'Contact Forms module removed');
+}
+
+/**
+* Implementation of hook_update_N()
+*/
+function contact_forms_update_6100() {
+  $ret = array();
+  if (!db_column_exists('contact', 'page_info')){
+    db_add_field($ret, 'contact', 'page_info', array('type' => 'text', 'size' => 'big', 'not null' => FALSE));
+  }
+  return $ret;
+}
+
+/**
+* Implementation of hook_update_N()
+*/
+function contact_forms_update_6101() {
+  $ret = array();
+
+  // Change !category to @category in the contactforms_information variable
+  $contactforms_information = variable_get('contactforms_information', 'You can send @category a message using the contact form below.');
+  $contactforms_information = str_replace ( '!category', '@category', $contactforms_information);
+  variable_set('contactforms_information', $contactforms_information);
+
+  // Change !category to @category in the contactform_title variable
+  $contactform_title = variable_get('contactform_title', 'Contact @category');
+  $contactform_title = str_replace ( '!category', '@category', $contactform_title);
+  variable_set('contactform_title', $contactform_title);
+
+  return $ret;
+}

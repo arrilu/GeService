@@ -466,7 +466,7 @@ function merci_verbose_logging($string) {
  *                       for the item selector.
  */
 function merci_build_reservable_items($node, $form_state, $reservation_nid = NULL) {
-
+  
   // Newly set dates take precedence.
   if (isset($form_state['values']['field_merci_date'])) {
     $start = $form_state['values']['field_merci_date'][0]['value'];
@@ -495,7 +495,6 @@ function merci_build_reservable_items($node, $form_state, $reservation_nid = NUL
   $vid = variable_get('merci_equipment_grouping_vid', 0);
   // This array holds all reservable items the user may reserve.
   // Loop through each bucket type.
-
   foreach ($merci_types as $type => $value) {
     if ($value['merci_active_status'] != MERCI_STATUS_ACTIVE) {
       continue;
@@ -511,6 +510,7 @@ function merci_build_reservable_items($node, $form_state, $reservation_nid = NUL
     }
     if ($value['merci_type_setting'] == 'bucket') {
       // Check for available items in the bucket.
+	  
       $available_bucket_items = merci_get_available_bucket_count($type, $start, $end, $reservation_nid)
         - $value['merci_spare_items'];
 
@@ -777,13 +777,13 @@ function merci_item_reservation_status($code = NULL) {
  */
 function merci_record_status($code = NULL) {
   $types = array(
-    MERCI_STATUS_UNCONFIRMED => t('Unconfirmed'),
+    //MERCI_STATUS_UNCONFIRMED => t('Unconfirmed'),
     MERCI_STATUS_PENDING => t('Confirmed'),
-    MERCI_STATUS_CHECKED_OUT => t('Checked out'),
+    /*MERCI_STATUS_CHECKED_OUT => t('Checked out'),
     MERCI_STATUS_CHECKED_IN => t('Checked in'),
     MERCI_STATUS_CANCELLED => t('Cancelled'),
     MERCI_STATUS_DENIED => t('Denied'),
-    MERCI_STATUS_NO_SHOW => t('No Show'),
+    MERCI_STATUS_NO_SHOW => t('No Show'),*/
   );
   if (isset($code)) {
     return $types[$code];

@@ -351,7 +351,7 @@ function merci_form(&$node, $form_state) {
 
   // We name our button 'merci_more' to avoid conflicts with other modules using
   // AHAH-enabled buttons with the id 'more'.
-  $form['choice_wrapper']['merci_more'] = array(
+  /*$form['choice_wrapper']['merci_more'] = array(
     '#type' => 'submit',
     '#value' => t('Add more items'),
     '#description' => t("If the number of items above isn't enough, click here to add more items."),
@@ -364,7 +364,7 @@ function merci_form(&$node, $form_state) {
       'method' => 'replace',
       'effect' => 'fade',
     ),
-  );
+  );*/
 
   if (user_access('manage reservations')) {
     $form['merci_reservation_status'] = array(
@@ -372,7 +372,7 @@ function merci_form(&$node, $form_state) {
       '#type' => 'radios',
       '#options' => merci_record_status(),
       '#default_value' => $node->merci_reservation_status,
-      '#description' => t('Finalized bookings can not have time conflicts with each other.'),
+      //'#description' => t('Finalized bookings can not have time conflicts with each other.'),
     );
   }
   else {
@@ -1281,7 +1281,7 @@ function merci_build_reservation_table_form(&$form_state, $node, $edit_page = FA
   $table['#tree']   = TRUE;
   $table['#table']  = array();
   $table['#header'] = array(
-    t('Item'),
+    t('Selecciona elemento'),
   );
 
   if (!isset($node->merci_reservation_items)) {
@@ -1379,12 +1379,12 @@ function merci_build_reservation_table_form(&$form_state, $node, $edit_page = FA
     }
 
     $type_setting = merci_type_setting($item['type']);
-
+	drupal_set_message("miau",status);
     if ($edit_page && $type_setting == 'bucket') {
       // Only users with manage reservations permission can change the bucket item assignment.
       if (user_access('manage reservations')) {
-
-        $options = array(0 => t('<Select>'));
+		dpm($type_setting);
+        $options = array(0 => t('<Selecciona>'));
         $options += merci_get_available_bucket_items($node, $item['type']);
         $form['merci_item_nid'] = array(
           '#type' => 'select',
@@ -1553,7 +1553,6 @@ function _merci_choice_form($node, $form_state, $delta, $default = '', $reset = 
     // NOTE: we don't filter by node here because we only want items not
     //reserved by any node including the node calling the function.
     $options = merci_build_reservable_items($node, $form_state, NULL);
-
   }
 
   $form = array(

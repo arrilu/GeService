@@ -1,0 +1,145 @@
+<?php
+// $Id: contact_forms.module,v 1.16 2009/11/09 06:48:40 gpdinoz Exp $
+
+/**
+ * @file
+ * Creates a unique Site Wide Contact form with out drop down menu for each of the Contact Categories.
+ */
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function contact_forms_form_alter(&$form, $form_state, $form_id) {
+  $path = $_GET['q'];
+
+  // redirect contact if another fall back page is defined
+  if ($path == 'contact' && variable_get('contactform_redirect', 'contact') != 'contact') {
+    drupal_goto(variable_get('contactform_redirect', 'contact'));
+  }
+
+  // Alter all contact forms except for /contact
+  if ($form_id == 'contact_mail_page' && drupal_match_path($path, 'contact/*')) {
+
+    $category = str_replace(array('-', '_') , ' ' , arg(1));
+    $query =  db_query("SELECT * FROM {contact} WHERE LOWER(category) = LOWER('%s')", $category);
+    $num = db_result(db_query("SELECT COUNT(*) FROM {contact} WHERE LOWER(category) = LOWER('%s')", $category));
+    //if category doesn't exist redirect to 'contact' or User Defined Page
+    if (!$num) {
+      drupal_goto(variable_get('contactform_redirect', 'contact'));
+    }
+    $categories_data =  db_fetch_array($query);
+
+    $contact_form_title = variable_get('contactform_title', 'Contact @category');
+    $contact_form_title = str_replace( '@category', $categories_data['category'], $contact_form_title);
+    drupal_set_title(check_plain($contact_form_title));
+
+
+    $contact_information = (!$categories_data['page_info']) ? variable_get('contactforms_information' , 'You can send @category a message using the contact form below.') : $categories_data['page_info'] ;
+    $contact_information = str_replace( '@category', $categories_data['category'], $contact_information);
+
+    $form['contact_information'] = array(
+      '#type' => 'markup',
+      '#value' => filter_xss_admin($contact_information),
+     );
+
+    $subject = str_replace(array('-', '_') , ' ' , arg(2));
+
+    $form['subject'] = array('#type' => 'textfield',
+      '#title' => t('Subject'),
+      '#maxlength' => 255,
+      '#default_value' => $subject,
+      '#required' => TRUE,
+    );
+
+    $form['cid'] = array(
+      '#type' => 'hidden',
+      '#value' => $categories_data['cid'],
+      '#required' => TRUE,
+    );
+  }
+
+  //Alter the contact Category Forms
+  if ($form_id == 'contact_admin_edit') {
+
+    $cid = $form['cid']['#value'];
+
+    if ($cid) {
+      $contact = db_fetch_object(db_query('SELECT * FROM {contact} WHERE cid = %d', $cid));
+    }
+
+    //Adds a text area that will hold category specific info for the contact page information
+    $form['page_info'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Additional Information'),
+      '#weight' => 0,
+      '#default_value' => $contact->page_info,
+      '#description' => t('Information to show on the individual contact page. If this is left empty the "Default Additional Information" will be displayed'),
+    );
+    //Set the weight of the category name so It appears above our inserted info area
+    $form['category']['#weight']='-1';
+  }
+
+  // Alter contact settings form
+  if ($form_id == 'contact_admin_settings') {
+
+    // get example contact form path
+    $query =  db_fetch_object(db_query_range("SELECT * FROM {contact}", 0, 1));
+    $name = str_replace(' ',  '_' , $query->category);
+
+    $form['contact_form_information'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Standard Contact Form Additional Information'),
+      '#weight' => -1,
+      '#default_value' => variable_get('contact_form_information', t('You can leave a message using the contact form below.')),
+     '#description' => t('Information to show on the standard <a href="!form">contact page</a> which has the path of /contact. Can be anything from submission guidelines to your postal address or telephone number.', array('!form' => url('contact'))),
+    );
+
+    $form['contactforms_information'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Default Additional Information for the individual contact pages'),
+      '#weight' => 0,
+      '#default_value' => variable_get('contactforms_information', t('You can send @category a message using the contact form below.')),
+      '#description' => t('If a category doesn\'t have additional information specified this will be shown.  To place the category name in your message use the wildcard "@category" e.g. You can send @category a message using the contact form below.'),
+    );
+
+    $form['contactform_redirect'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Contact Form redirect'),
+      '#default_value' => variable_get('contactform_redirect', 'contact'),
+      '#weight' => -2,
+      '#maxlength' => 60,
+      '#description' => t('The page you would like to redirect to if a contact/category path is entered that doesn\'t exist.'),
+      '#required' => FALSE,
+    );
+
+    $form['contactform_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Contact Form Title'),
+      '#default_value' => variable_get('contactform_title', 'Contact @category'),
+      '#weight' => -3,
+      '#maxlength' => 60,
+      '#description' => t('The title you would like displayed on the <a href="!form">contact page</a>. To place the category name in the title use the wildcard "@category".', array('!form' => url('contact/'. $name))),
+      '#required' => TRUE,
+    );
+  }
+}
+
+
+/**
+ * Implementation of hook_menu_alter
+ */
+ function contact_forms_menu_alter(&$items) {
+  $items['contact/%'] = $items['contact'];
+}
+/**
+ * Implementation of hook_schema_alter
+ */
+function contact_forms_schema_alter(&$schema) {
+  // Add field to existing schema.
+  $schema['contact']['fields']['page_info'] = array(
+    'type' => 'text',
+	  'not null' => FALSE,
+    'size' => 'big',
+    'description' => 'Category Page Information Displayed on the individual category pages',
+  );
+}

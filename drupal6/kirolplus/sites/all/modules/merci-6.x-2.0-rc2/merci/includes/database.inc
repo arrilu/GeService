@@ -326,15 +326,16 @@ function merci_get_reservable_items($content_type, $start = NULL, $end = NULL, $
   //      is usually used to allow an already assigned item to not conflict with itself.
   //   4. Exclude items from past reservations where the item is in a checked out state.
 
-  $query = "SELECT n.nid, n.title FROM {node} n
-    INNER JOIN {merci_reservation_item_node} m ON n.vid = m.vid
-      WHERE m.merci_default_availability IN (%d, %d)
+  $query = "SELECT n.nid, n.title, ni.title as insta
+		FROM {node} n, {merci_reservation_item_node} m, {content_type_reservables} ctr, {node} ni
+		WHERE n.vid = m.vid
+		AND n.nid = ctr.nid
+		AND ni.nid = ctr.field_ref_instalacion_nid
+		AND m.merci_default_availability IN (%d, %d)
         AND n.type = '%s'
-        AND m.merci_sub_type = %d
         ";
 
   $args = array(MERCI_AVA_F, MERCI_AVA_T, $content_type, MERCI_SUB_TYPE_ITEM);
-
 
   if ($start) {
     // Determine CCK table and columns the date data is stored in.
@@ -376,13 +377,13 @@ function merci_get_reservable_items($content_type, $start = NULL, $end = NULL, $
     ";
 
   }
-  $query .= " ORDER BY n.title";
+  $query .= " ORDER BY ni.title, n.title";
 
   $items = db_query($query, $args);
   $options = array();
 
   while ($item = db_fetch_object($items)) {
-    $options[$item->nid] = $item->title;
+    $options[$item->nid] = $item->title.' ('.$item->insta.')';
   }
 
   if ($overdue) {
