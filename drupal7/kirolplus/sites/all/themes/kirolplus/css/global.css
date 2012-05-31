@@ -1,2 +1,429 @@
 /* This file will hold styles for the mobile version of your website (mobile first). */
 /* This also can include ANY global CSS that applies site-wide. Unless overwritten by a more specific style rule, CSS declarations in global.css will apply site-wide. */
+
+body
+{
+background-color:white;
+}
+
+/*@import url(red.css);*/
+/*@import url(green.css);*/
+/*=======================================*/
+/* These are used to change which colour 
+/* scheme you want. Comment out the colours
+/* you don't want to use.
+/*=======================================*/
+
+/*=================================*/
+/* Skipopia Premium Theme
+/* April 2009
+/* By: Gilbert Pellegrom
+/* http://www.gilbertpellegrom.co.uk
+/*=================================*/
+
+/*===================*/
+/*=== Main Styles ===*/
+/*===================*/
+body {
+	font-family:Helvetica,"Helvetica Neue","Lucida Grande","Lucida Sans Unicode",Sans-Serif,Verdana,Arial;
+	font-size:12px;
+	line-height:1.4em;
+	color:#444;
+}
+
+h1 {
+	font-size:28px;
+	font-weight:bold;
+	line-height:30px;
+	margin-bottom:7px;
+	color:#243945;
+}
+
+h2 {
+	font-size:22px;
+	font-weight:bold;
+	line-height:30px;
+	color:#243945;
+	border-bottom:1px solid #ccc;
+	margin-bottom:10px;
+	padding-top:8px;
+}
+
+h3 {
+	font-size:16px;
+	font-weight:bold;
+	line-height:18px;
+	color:#243945;
+	margin:5px 0;
+	padding-top:10px;
+}
+
+p {
+	margin-bottom:10px;
+}
+ol {
+	list-style:decimal;
+	padding-left:20px;
+	padding-bottom:7px;
+}
+ul {
+	list-style:none;
+	list-style-image:url(../images/tick_small.png);
+	padding-left:25px;
+	padding-bottom:7px;
+}
+li {
+	padding:2px;
+}
+
+b, strong {
+	font-weight:bold;
+}
+i, em {
+	font-style:italic;
+}
+u {
+	text-decoration:underline;
+}
+code {
+	font-family:Courier,"Courier New",Monaco,Tahoma;
+	padding:0px 2px;
+}
+pre {
+	padding:0px 20px;
+	margin:20px;
+}
+blockquote {
+	font-style:italic;
+	padding:0px 10px;
+	margin:0 0 10px 20px;
+	border-left:3px solid #243945;
+	font-size:14px;
+}
+
+/*========================*/
+/*=== Structure Styles ===*/
+/*========================*/
+#wrapper {
+	width:900px;
+	margin:0 auto;
+}
+
+#header {
+	margin-top:30px;
+}
+
+#header h1 {
+	text-indent:-9999px;
+}
+
+#nav ul {
+	list-style:none;
+	float:right;
+	padding:0;
+	padding-top:10px;
+}
+#nav li {
+	display:inline;
+	padding:0;
+}
+#nav a {
+	display:block;
+	border:0;
+	text-indent:-9999px;
+	float:left;
+	height:41px;
+}
+
+#middlebar-big {
+	width:879px;
+	height:304px;
+	margin-left:21px;
+}
+#middlebar-big h2 {
+	padding:62px 0 0 100px;
+	color:#fff;
+	font-size:28px;
+	line-height:30px;
+	font-weight:bold;
+	border:0;
+}	
+#middlebar-big p {
+	padding:5px 0 10px 100px;
+	font-size:22px;
+	line-height:23px;
+}	
+#middlebar-big a.learn-more {
+	display:block;
+	text-indent:-9999px;
+	width:130px;
+	height:26px;
+}
+#middlebar-big .product {
+	position:relative;
+	width:100%;
+	height:100%;
+	background:transparent !important; /* Strange fix needed for IE */
+	margin-top:20px;
+}
+#middlebar-big .product p { margin-bottom:0px; }
+#middlebar-big .product a { border:0; }
+#middlebar-big .product a:hover { color:#20333F; }
+#middlebar-big .product img {
+	position:absolute;
+	top:0px;
+	right:100px;
+}	
+#middlebar-small {
+	width:879px;
+	height:140px;
+	margin-left:21px;
+	position:relative;
+}
+#middlebar-small h2 {
+	padding:70px 0 0 50px;
+	color:#fff;
+	font-size:28px;
+	line-height:30px;
+	font-weight:bold;
+	border:0;
+}
+
+#body {
+	background:#fff;
+	width:864px;
+	margin-left:36px;
+}
+#body-inner {
+	padding:40px;
+}
+
+#footer {
+	width:879px;
+	height:68px;
+	margin:0 0 40px 21px;
+	padding:38px 0 0 40px;
+	color:#5c7788;
+}
+#footer-right {
+	float:right;
+	margin-right:70px;
+}
+#footer a {
+	color:#5c7788;
+	border:0;
+}
+
+#main-content {
+	width:515px;
+}
+#sidebar {
+	float:right;
+	width:220px;
+	border-left:1px solid #ccc;
+	padding-left:25px;
+}
+#sidebar h3 {
+	padding:0 0 10px 0;
+}
+#sidebar h3.icon {
+	background:url(../images/sidebar.png) no-repeat;
+	padding:5px 0 0 45px;
+	height:40px;
+}
+#sidebar h3.icon-contact {
+	background:url(../images/contact.png) no-repeat;
+	padding:5px 0 0 45px;
+	height:40px;
+}
+#sidebar h3.icon-cats {
+	background:url(../images/cats.png) no-repeat;
+	padding:5px 0 0 45px;
+	height:40px;
+}
+#sidebar h3.icon-feature {
+	background:url(../images/feature.png) no-repeat;
+	padding:5px 0 0 45px;
+	height:40px;
+}
+
+.sub-box {
+	float:left;
+	width:227px;
+	margin-right:30px;
+	padding-right:20px;
+	border-right:1px solid #ccc;
+	margin-bottom:30px;
+}
+.sub-box.right {
+	margin-right:0px;
+	border-right:0px;
+	padding-right:0px;
+}
+.sub-box img {
+	float:left;
+	margin:0px 10px 0 0;
+}
+.sub-box h3 {
+	padding:5px 0 18px 0;
+}
+
+.product-main {
+	clear:left;
+}
+.product-main img {
+	float:left;
+	margin-right:30px;
+	margin-bottom:30px;
+}
+.product-main a img {
+	border:0;
+}
+
+.cost {
+	font-size:28px;
+	float:right;
+	color:#334F60;
+	font-weight:bold;
+	font-style:italic;
+	font-family:Georgia,Times,serif;
+}
+
+p.buy-now {
+	text-align:right;
+}
+p.buy-now a {
+	border:0;
+	color:#fff;
+	padding:5px;
+}
+p.buy-now a:hover {
+	border:0;
+	background:#243945;
+}
+
+
+/*====================*/
+/*=== Input Styles ===*/
+/*====================*/
+input,
+textarea,
+select {
+  padding: 4px;
+  font: 400 1em Verdana, Sans-serif;
+  color: #444;
+  background:#ffffff;
+  border: 1px solid #999;
+  margin:2px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  color: #000;
+}
+
+input.button {
+  color: #fff;
+  width:150px !important;
+  border:0px;
+}
+
+label {
+	font-weight:bold;
+}
+
+.form {
+	list-style:none;
+	list-style-image:none;
+	margin:0;
+	padding:0;
+}
+.form input, .form textarea {
+	width:300px;
+}
+.form label {
+	display:inline-block;
+	padding-top:8px;
+	vertical-align:top;
+	width:100px;
+}
+
+/*====================*/
+/*=== Other Styles ===*/
+/*====================*/
+.clear {
+	clear:both;
+}
+
+ul.links {
+	list-style:none;
+	list-style-image:none;
+	padding:0;
+	margin:0;
+}
+ul.links a {
+	display:block;
+	border-bottom-style:dotted;
+}
+
+article,aside,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section {
+display:block;
+}
+
+
+/*====================*/
+/*=== Menú ===*/
+/*====================*/
+
+.zone-branding-wrapper{
+	background-color: white;
+}
+
+/*ul.main-menu {
+	width: 100%;
+	height: 43px;
+	background: #FFF url("menu-bg.gif") top left repeat-x;
+	font-size: 0,8em;
+	font-family: "Lucida Grande", Verdana, sans-serif;
+	font-weight: bold;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}*/
+ul.main-menu li {
+	display: block;
+	float: left;
+	margin: 0 0 0 5px;
+}
+ul.main-menu li a {
+	height: 43px;
+	color: #777;
+	text-decoration: none;
+	display: block;
+	float: left;
+	line-height: 200%;
+	padding: 8px 15px 0;
+	width: 100%;
+	height: 43px;
+	background: #FFF url("menu-bg.gif") top left repeat-x;
+	font-size: 0,8em;
+	font-family: "Lucida Grande", Verdana, sans-serif;
+	font-weight: bold;
+	list-style-type: none;
+}
+ul.main-menu li a:hover {
+	color: #333;
+}
+
+
+ul.main-menu li a.active-trail {
+	color: #FFF;
+	background: #FFF url("current-bg.gif") top left repeat-x;
+	padding: 5px 15px 0;
+}
+
+input				{ width: 220px; display: block; padding: 4px; margin: 0 0 10px 0; font-size: 18px;
+					  color: #3a3a3a; font-family: Georgia, serif;}
+

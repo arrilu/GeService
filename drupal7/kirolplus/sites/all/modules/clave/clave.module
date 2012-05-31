@@ -1,0 +1,108 @@
+<?php
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the onthisdate module
+*/
+function clave_perm() {
+  return array('access clave', 'create clave', 'administer clave');
+} // function clave_perm()
+
+function clave_admin() {
+  $form = array();
+
+  $form['num_cod'] = array(
+    '#type' => 'textfield',
+    '#title' => t('N&uacute;mero de c&oacute;digos'),
+    '#default_value' => variable_get('num_cod', 3),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t("N&uacute;mero de c&oacute;digos a generar"),
+    '#required' => TRUE,
+  );
+  
+  $form['valor'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Valor de los c&oacute;digos'),
+    '#default_value' => variable_get('valor', 3),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t("Valor en puntos de los c&oacute;digos a generar"),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+  $num = variable_get("num_cod", 3);
+  $valo = variable_get("valor", 3);
+
+  $query = "SELECT nid, title, created FROM " .
+           "{node} WHERE created >= %d " .
+           "AND created <= %d";
+
+  $query_result = db_query_range($query, $start_time, $end_time, 0, $num, $valo);
+
+function clave_menu() {
+
+  $items = array();
+
+  $items['admin/settings/clave'] = array(
+    'title' => 'Generar c&oacute;digos',
+    'description' => 'Description of your On this date settings page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clave_admin'),
+    'access arguments' => array('administer clave settings'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+
+  return $items;
+}
+
+function clave_admin_validate($form, &$form_state) {
+
+  $num_cod = $form_state['values']['num_cod'];
+  $valor = $form_state['values']['valor'];
+  if (!is_numeric($num_cod)) {
+    form_set_error('num_cod', t('Debes introducir un n&uacute;umero positivo.'));
+  }
+  else if ($num_cod <= 0) {
+    form_set_error('num_cod', t('Debes introducir un n&uacute;umero positivo.'));
+  }
+  else if (!is_numeric($valor)) {
+    form_set_error('valor', t('Debes introducir un n&uacute;umero positivo.'));
+  }
+  else if ($valor <= 0) {
+    form_set_error('valor', t('Debes introducir un n&uacute;umero positivo.'));
+  }
+  else{
+  
+	  for ($i=0;$i<$num_cod;$i++){
+	  
+		$cod = clave_random();
+		$query = "INSERT INTO codigos VALUES ('". $cod . "', " . $valor . ", " . "1)";
+		$result = db_query($query);
+	  }
+  }
+}
+
+function clave_random() {
+
+    $arr = str_split('ABCDEFGHIJKLMNOPQRSTUVWZ1234567890'); // get all the characters into an array
+    shuffle($arr); // randomize the array
+    $arr = array_slice($arr, 0, 10); // get the first 10 (random) characters out
+    $str = implode('', $arr); // smush them back into a string
+
+  return $str;
+}
+
+function clave_admin_form_submit($form_id, $form_values) {
+
+  $message = 'You have submitted the ' . $form_id . ' form which contains the following data:<pre>' . print_r($form_values,true) . '</pre>';
+  drupal_set_message(t($message));
+}
+
+
+
+?>
+
+

@@ -17,9 +17,10 @@ function merci_ui_views_api() {
 
 function merci_ui_preprocess_views_view(&$variables) {
   if(isset($variables['name'])) {
+	$nid = arg(1);
     if ($variables['name'] == 'merci_ui_user_reservations' or $variables['name'] == 'merci_ui_node_reservations') {
       $output = '<div id="make-merci-reservation">';
-      $output .= l(t('Make a Reservation'), 'node/add/merci-reservation');
+      $output .= l(t('Make a Reservation'), 'node/add/merci-reservation/'.$nid);
       $output .= '</div>';
       $variables['footer'] .= $output;
     }

@@ -2975,7 +2975,7 @@ table.views-view-grid td {
 
 .view div.more-link,
 .view .view-footer,
-.heartbeat-more-messages-wrapper {
+/* .heartbeat-more-messages-wrapper {
 	display: block;
 	font-size: 11px;
 	font-weight: normal;
@@ -2985,6 +2985,20 @@ table.views-view-grid td {
 	background:transparent url(../images/gray-arrow-right.png) no-repeat top right;
 	line-height:1.1em;
 	clear: both;
+} */
+
+.heartbeat-more-messages-wrapper{
+	display: block;
+	font-size: 14px;
+	font-weight: bold;
+	margin: 10px 0 0 0;
+	padding: 0px 15px 0px 0px;
+	text-align: left;
+	background:transparent url(../images/gray-arrow-right.png) no-repeat top right;
+	line-height:1.1em;
+	clear: both;
+	text-decoration:underline
+	
 }
 
 .view-footer div {
@@ -3844,3 +3858,8 @@ textarea, .form-item input, .form-item select, #content-region input.form-text {
     top: 1.2em;
 
 }
+/****
+div.make-merci-reservation {
+    background-color:red;
+}
+*/

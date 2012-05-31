@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS `codigos` (
+  `ID` varchar(10) NOT NULL DEFAULT '0',
+  `VALOR` int(3) DEFAULT NULL,
+  `VALIDO` int(1) DEFAULT '1',
+  `FECHA` datetime DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

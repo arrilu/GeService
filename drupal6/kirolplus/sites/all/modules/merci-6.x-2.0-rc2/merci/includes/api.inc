@@ -486,7 +486,7 @@ function merci_build_reservable_items($node, $form_state, $reservation_nid = NUL
   }
 
   $options = array();
-  $options['options'] = array('' => t('<Select>'));
+  //$options['options'] = array('' => t('<Select>'));
 
   $merci_types = merci_content_types();
   $bucket_options = array();

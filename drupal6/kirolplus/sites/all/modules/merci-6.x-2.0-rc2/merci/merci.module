@@ -1,3 +1,4 @@
+
 <?php
 
 /**
@@ -1379,11 +1380,10 @@ function merci_build_reservation_table_form(&$form_state, $node, $edit_page = FA
     }
 
     $type_setting = merci_type_setting($item['type']);
-	drupal_set_message("miau",status);
+	
     if ($edit_page && $type_setting == 'bucket') {
       // Only users with manage reservations permission can change the bucket item assignment.
       if (user_access('manage reservations')) {
-		dpm($type_setting);
         $options = array(0 => t('<Selecciona>'));
         $options += merci_get_available_bucket_items($node, $item['type']);
         $form['merci_item_nid'] = array(

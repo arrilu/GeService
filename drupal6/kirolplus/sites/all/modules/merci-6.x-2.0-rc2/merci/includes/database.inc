@@ -316,7 +316,7 @@ function merci_db_reservations_by_status_in_timespan($statuses = array(), $start
  */
 function merci_get_reservable_items($content_type, $start = NULL, $end = NULL, $reservation_nid = NULL, $overdue = TRUE) {
 
-
+  $nid = arg(3);
   $merci_type = merci_type_setting($content_type);
   // Pull reservable items.  This query takes the following into consideration:
   //   1. Pulls all all item nodes of the content type that are in an available or checked in state,
@@ -332,10 +332,10 @@ function merci_get_reservable_items($content_type, $start = NULL, $end = NULL, $
 		AND n.nid = ctr.nid
 		AND ni.nid = ctr.field_ref_instalacion_nid
 		AND m.merci_default_availability IN (%d, %d)
-        AND n.type = '%s'
-        ";
+        AND n.type = '%s' AND n.nid = ".$nid;
 
   $args = array(MERCI_AVA_F, MERCI_AVA_T, $content_type, MERCI_SUB_TYPE_ITEM);
+  
 
   if ($start) {
     // Determine CCK table and columns the date data is stored in.
