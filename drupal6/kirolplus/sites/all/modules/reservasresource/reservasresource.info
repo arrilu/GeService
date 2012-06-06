@@ -1,0 +1,5 @@
+name = API Reservas
+description = API reservas implementation
+package = API reservas
+
+core = 6.x

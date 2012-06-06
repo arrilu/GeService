@@ -1,0 +1,198 @@
+<?php
+/**
+* @file
+* Simple module to make api 
+*/
+
+/**
+* Implements hook_perm().
+*/
+function reservasresource_perm() {
+	return array(
+		'reservas create',
+		'reservas view any',
+		'reservas view own',
+		'reservas edit any',
+		'reservas edit own',
+		'reservas delete any',
+		'reservas delete own',
+	);
+}
+
+/**
+* Gets a note object by id.
+*
+* @param int $id
+* @return object
+*/ 
+function reservasresource_get_reservas($nid) {
+	return db_fetch_object(db_query("SELECT * FROM {merci_reservation} WHERE nid=:nid", array(':nid' => $nid,)));
+}
+
+/**
+* Writes a note to the database
+*
+* @param object $note
+* @return void
+*/
+function reservasresource_write_reservas($reserva) {
+	$primary_key = !empty($reserva->nid) ? array('nid') : NULL;
+	drupal_write_record('merci_reservation', $reserva, $primary_key);
+}
+
+/**
+* Deletes a note from the database.
+*
+* @param int $id
+* @return void
+*/
+function reservasresource_delete_reservas($nid) {
+	db_query("DELETE FROM {merci_reservation} WHERE nid=:nid", array(':nid' => $nid,));
+}
+
+/**
+* Implements hook_services_resources().
+*/
+function reservasresource_services_resources() {
+	return array(
+		'merci_reservation' => array(
+		'retrieve' => array(
+		'help' => 'Retrieves a reserva',
+		'file' => array('file' => 'inc', 'module' => 'reservasresource'),
+		'callback' => '_reservasresource_retrieve',
+		'access callback' => '_reservasresource_access',
+		'access arguments' => array('view'),
+		'access arguments append' => TRUE,
+		'args' => array(
+			array(
+			'name' => 'nid',
+			'type' => 'int',
+			'description' => 'The nid of the reserva to get',
+			'source' => array('path' => '0'),
+			'optional' => FALSE,
+			),
+		),
+        ),
+		'create' => array(
+		'help' => 'Creates a reserva',
+		'file' => array('file' => 'inc', 'module' => 'reservasresource'),
+		'callback' => '_reservasresource_create',
+		'access arguments' => array('reservas create'),
+		'access arguments append' => FALSE,
+		'args' => array(
+			array(
+			'name' => 'data',
+			'type' => 'struct',
+			'description' => 'The reserva object',
+			'source' => 'data',
+			'optional' => FALSE,
+			),
+		),
+        ),
+        'update' => array(
+           'help' => 'Updates a reserva',
+           'file' => array('file' => 'inc', 'module' => 'reservasresource'),
+           'callback' => '_reservasresource_update',
+           'access callback' => '_reservasresource_access',
+           'access arguments' => array('update'),
+           'access arguments append' => TRUE,
+           'args' => array(
+             array(
+               'name' => 'nid',
+               'type' => 'int',
+               'description' => 'The nid of the reserva to update',
+               'source' => array('path' => '0'),
+               'optional' => FALSE,
+             ),
+             array(
+               'name' => 'data',
+               'type' => 'struct',
+               'description' => 'The reserva data object',
+               'source' => 'data',
+               'optional' => FALSE,
+             ),
+           ),
+        ),
+        'delete' => array(
+           'help' => 'Deletes a reserva',
+           'file' => array('file' => 'inc', 'module' => 'reservasresource'),
+           'callback' => '_reservasresource_delete',
+           'access callback' => '_reservasresource_access',
+           'access arguments' => array('delete'),
+           'access arguments append' => TRUE,
+           'args' => array(
+             array(
+               'name' => 'nid',
+               'type' => 'int',
+               'description' => 'The nid of the reserva to delete',
+               'source' => array('path' => '0'),
+               'optional' => FALSE,
+             ),
+           ),
+        ),
+        'index' => array(
+           'help' => 'Retrieves a listing of reservas',
+           'file' => array('file' => 'inc', 'module' => 'reservasresource'),
+           'callback' => '_reservasresource_index',
+           'access callback' => 'user_access',
+           'access arguments' => array('access content'),
+           'access arguments append' => FALSE,
+           'args' => array(array(
+               'name' => 'page',
+               'type' => 'int',
+               'description' => '',
+               'source' => array(
+                 'param' => 'page',
+               ),
+               'optional' => TRUE,
+               'default value' => 0,
+             ),
+             array(
+               'name' => 'parameters',
+               'type' => 'array',
+               'description' => '',
+               'source' => 'param',
+               'optional' => TRUE,
+               'default value' => array(),
+             ),
+            ),
+        ),
+       ),
+      );
+}
+
+
+/**
+ * Access callback for the note resource.
+ *
+ * @param string $op
+ *  The operation that's going to be performed.
+ * @param array $args
+ *  The arguments that will be passed to the callback.
+ * @return bool
+ *  Whether access is given or not.
+ */
+function _reservasresource_access($op, $args) {
+  global $user;
+  $access = FALSE;
+
+  switch ($op) {
+	case 'view':
+	  $note = reservasresource_get_reservas($args[0]);
+	  $access = user_access('reservas view any');
+	  $access = $access || $note->uid == $user->uid && user_access('reservas view own');
+	  break;
+	case 'update':
+	  $note = reservasresource_get_reservas($args[0]->id);
+	  $access = user_access('reservas edit any');
+	  $access = $access || $note->uid == $user->uid && user_access('reservas edit own');
+	  break;
+	case 'delete':
+	  $note = reservasresource_get_reservas($args[0]);
+	  $access = user_access('reservas delete any');
+	  $access = $access || $note->uid == $user->uid && user_access('reservas delete own');
+	  break;
+  }
+
+  return $access;
+}
